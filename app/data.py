@@ -39,6 +39,7 @@ COLUMNS = [
     "called_strike",
     "foul",
     "ball",
+    "bunt_attempt",
     "bat_speed",
     "vertical_bat_angle",
     "horizontal_bat_angle",
