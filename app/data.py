@@ -84,6 +84,16 @@ def batting() -> pl.DataFrame:
             is_pa=pl.col("terminating")
             & ~pl.col("event_type").is_in(BASERUNNING_EVENTS),
             batted_ball=pl.col("in_play") & pl.col("hit_exit_speed").is_not_null(),
+            count_state=pl.when(pl.col("pre_balls") > pl.col("pre_strikes"))
+            .then(pl.lit("ahead"))
+            .when(pl.col("pre_balls") == pl.col("pre_strikes"))
+            .then(pl.lit("even"))
+            .otherwise(pl.lit("behind")),
+            inning_band=pl.when(pl.col("inning") <= 3)
+            .then(pl.lit("early"))
+            .when(pl.col("inning") <= 6)
+            .then(pl.lit("middle"))
+            .otherwise(pl.lit("late")),
             base_state=pl.when(pl.col("pre_basecode") == 0)
             .then(pl.lit("empty"))
             .when(pl.col("pre_basecode") >= 10)

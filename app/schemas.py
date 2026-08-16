@@ -1,5 +1,4 @@
 from datetime import date
-
 from enum import StrEnum
 
 from pydantic import BaseModel
@@ -157,3 +156,21 @@ class BattedBall(BaseModel):
 class SprayChart(BaseModel):
     batted_balls: list[BattedBall]
     trajectories: list[FilterOption]
+
+
+class Dimension(StrEnum):
+    COUNT = "count"
+    INNING = "inning"
+    BASES = "bases"
+    HAND = "hand"
+
+
+class Split(BaseModel):
+    bucket: str
+    player: StatLine
+    team: StatLine
+
+
+class Splits(BaseModel):
+    dimension: Dimension
+    splits: list[Split]

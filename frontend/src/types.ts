@@ -118,3 +118,14 @@ export interface SprayChart {
   batted_balls: BattedBall[]
   trajectories: FilterOption[]
 }
+
+export interface Split {
+  bucket: string
+  player: StatLine
+  team: StatLine
+}
+
+export interface Splits {
+  dimension: string
+  splits: Split[]
+}

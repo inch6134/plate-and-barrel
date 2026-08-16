@@ -51,3 +51,26 @@ def test_ascending_order_ranks_lowest_first():
 
 def test_unknown_metric_is_rejected():
     assert client.get("/api/leaderboard", params={"metric": "nope"}).status_code == 422
+
+
+def test_splits_return_buckets_in_domain_order():
+    splits = client.get(
+        "/api/players/592518/splits", params={"dimension": "count"}
+    ).json()
+    assert [s["bucket"] for s in splits["splits"]] == ["ahead", "even", "behind"]
+
+
+def test_splits_carry_a_matching_team_baseline():
+    splits = client.get(
+        "/api/players/592518/splits", params={"dimension": "bases"}
+    ).json()
+    scoring = next(s for s in splits["splits"] if s["bucket"] == "scoring")
+    assert round(scoring["player"]["chase_rate"], 3) == 0.447
+    assert round(scoring["team"]["chase_rate"], 3) == 0.356
+
+
+def test_thin_samples_are_gated_within_each_bucket():
+    splits = client.get(
+        "/api/players/666703/splits", params={"dimension": "count"}
+    ).json()
+    assert all(s["player"]["chase_rate"] is None for s in splits["splits"])

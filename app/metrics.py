@@ -1,7 +1,6 @@
 import polars as pl
 import polars.selectors as cs
 
-
 HARD_HIT_MPH = 95.0
 SWEET_SPOT_MIN_DEG = 8.0
 SWEET_SPOT_MAX_DEG = 32.0

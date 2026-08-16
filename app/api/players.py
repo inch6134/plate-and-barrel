@@ -2,19 +2,30 @@ import polars as pl
 from fastapi import APIRouter, HTTPException
 
 from app.data import batting, roster
-from app.metrics import HIT_EVENTS, SPRAY_DETAIL, SWING_DETAIL, summarize
+from app.metrics import HIT_EVENTS, SPRAY_DETAIL, SWING_DETAIL, apply_floors, summarize
 from app.schemas import (
+    Dimension,
+    Outcome,
     PitchType,
     Player,
     PlayerDetail,
+    Split,
+    Splits,
+    SprayChart,
     StatLine,
     SwingProfile,
-    Outcome,
-    SprayChart,
     Trajectory,
 )
 
 router = APIRouter(prefix="/api", tags=["players"])
+
+
+DIMENSIONS = {
+    Dimension.COUNT: ("count_state", ["ahead", "even", "behind"]),
+    Dimension.INNING: ("inning_band", ["early", "middle", "late"]),
+    Dimension.BASES: ("base_state", ["empty", "on_base", "scoring"]),
+    Dimension.HAND: ("pitcher_side", ["L", "R"]),
+}
 
 
 def _rows_for(batter_id: int) -> pl.DataFrame:
@@ -43,6 +54,15 @@ def _spray_filters(
             pl.col("event_type").is_in(HIT_EVENTS) == (outcome is Outcome.HIT)
         )
     return matches
+
+
+def _bucketed(frame: pl.DataFrame, column: str, buckets: list[str]) -> list[dict]:
+    return (
+        apply_floors(summarize(frame, [column]))
+        .with_columns(pl.col(column).cast(pl.Enum(buckets)))
+        .sort(column)
+        .to_dicts()
+    )
 
 
 @router.get("/players")
@@ -98,6 +118,19 @@ def get_spray_chart(
     return SprayChart(
         batted_balls=scoped.select(SPRAY_DETAIL).to_dicts(),
         trajectories=trajectories.to_dicts(),
+    )
+
+
+@router.get("/players/{batter_id}/splits")
+def get_splits(batter_id: int, dimension: Dimension = Dimension.COUNT) -> Splits:
+    column, buckets = DIMENSIONS[dimension]
+    baseline = {row[column]: row for row in _bucketed(batting(), column, buckets)}
+    return Splits(
+        dimension=dimension,
+        splits=[
+            Split(bucket=row[column], player=row, team=baseline[row[column]])
+            for row in _bucketed(_rows_for(batter_id), column, buckets)
+        ],
     )
 
 

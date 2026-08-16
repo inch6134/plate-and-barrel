@@ -6,6 +6,7 @@ import LeaderboardPanel from './components/LeaderboardPanel.vue'
 import PlayerPanel from './components/PlayerPanel.vue'
 import SwingProfileView from './components/SwingProfileView.vue'
 import SprayChartView from './components/SprayChartView.vue'
+import SplitsView from './components/SplitsView.vue'
 
 const TABS = ['Swing Profile', 'Spray Chart', 'Situational Splits']
 
@@ -50,10 +51,7 @@ watch(players, (roster) => {
       </nav>
       <SwingProfileView v-if="activeTab === 'Swing Profile'" :batter-id="batterId" />
       <SprayChartView v-else-if="activeTab === 'Spray Chart'" :batter-id="batterId" />
-      <div v-else class="panel placeholder">
-        <p class="eyebrow">{{ activeTab }}</p>
-        <p>This view is next up.</p>
-      </div>
+      <SplitsView v-else :batter-id="batterId" />
     </section>
 
     <LeaderboardPanel :batter-id="batterId" @select="batterId = $event" />
