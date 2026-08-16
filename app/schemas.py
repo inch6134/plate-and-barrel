@@ -86,3 +86,40 @@ class LeaderboardEntry(BaseModel):
     name_last: str
     value: float
     sample: int
+
+
+class PitchType(StrEnum):
+    FOUR_SEAM = "4S"
+    SINKER = "2S"
+    CUTTER = "CT"
+    SLIDER = "SL"
+    SWEEPER = "SW"
+    CURVEBALL = "CB"
+    CHANGEUP = "CH"
+    SPLITTER = "SP"
+
+
+class Swing(BaseModel):
+    bat_speed: float
+    attack_angle: float | None
+    pitch_type: str
+    in_zone: bool
+    result: str
+    event_type: str | None
+    exit_velo: float | None
+    launch_angle: float | None
+    distance: float | None
+    hard_hit: bool
+    barrel: bool
+
+
+class PitchTypeOption(BaseModel):
+    code: str
+    pitches: int
+
+
+class SwingProfile(BaseModel):
+    player: StatLine
+    team: StatLine
+    swings: list[Swing]
+    pitch_types: list[PitchTypeOption]

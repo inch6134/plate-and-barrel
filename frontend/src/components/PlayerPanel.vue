@@ -10,7 +10,7 @@ const { data, error } = useResource(() => fetchPlayer(props.batterId))
 
 const slash = computed(() => {
   const stats = data.value?.stats
-  return stats ? [stats.avg, stats.obp, stats.slg].map((value) => formatValue(value, 'slash')).join(' / ') : ''
+  return stats ? [stats.avg, stats.obp, stats.slg, stats.ops].map((value) => formatValue(value, 'slash')).join(' / ') : ''
 })
 
 const SIDES: Record<string, string> = { L: 'Bats left', R: 'Bats right', S: 'Switch hitter' }
@@ -29,7 +29,7 @@ const SIDES: Record<string, string> = { L: 'Bats left', R: 'Bats right', S: 'Swi
       </p>
 
       <p class="slash numeric">{{ slash }}</p>
-      <p class="eyebrow">AVG / OBP / SLG</p>
+      <p class="eyebrow">AVG / OBP / SLG / OPS</p>
 
 
       <section v-for="group in METRIC_GROUPS" :key="group.label" class="group">

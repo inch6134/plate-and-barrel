@@ -73,3 +73,29 @@ export interface LeaderboardEntry {
   value: number
   sample: number
 }
+
+export interface Swing {
+  bat_speed: number
+  attack_angle: number | null
+  pitch_type: string
+  in_zone: boolean
+  result: 'in_play' | 'foul' | 'whiff'
+  event_type: string | null
+  exit_velo: number | null
+  launch_angle: number | null
+  distance: number | null
+  hard_hit: boolean
+  barrel: boolean
+}
+
+export interface PitchTypeOption {
+  code: string
+  pitches: number
+}
+
+export interface SwingProfile {
+  player: StatLine
+  team: StatLine
+  swings: Swing[]
+  pitch_types: PitchTypeOption[]
+}

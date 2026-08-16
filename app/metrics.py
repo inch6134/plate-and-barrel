@@ -71,6 +71,10 @@ is_barrel = (
 )
 
 
+def _on_batted_ball(expr: pl.Expr) -> pl.Expr:
+    return pl.when(pl.col("batted_ball")).then(expr).otherwise(None)
+
+
 def _on_batted_balls(expr: pl.Expr) -> pl.Expr:
     return expr.filter(pl.col("batted_ball"))
 
@@ -167,6 +171,27 @@ RATES = [
 
 OPS = (pl.col("obp") + pl.col("slg")).alias("ops")
 
+SWING_DETAIL = [
+    pl.col("bat_speed"),
+    pl.col("vertical_bat_attack_angle").alias("attack_angle"),
+    pl.col("pitch_type"),
+    pl.col("in_zone"),
+    pl.when(pl.col("in_play"))
+    .then(pl.lit("in_play"))
+    .when(pl.col("foul"))
+    .then(pl.lit("foul"))
+    .otherwise(pl.lit("whiff"))
+    .alias("result"),
+    pl.col("event_type"),
+    _on_batted_ball(pl.col("hit_exit_speed")).alias("exit_velo"),
+    _on_batted_ball(pl.col("hit_vertical_angle")).alias("launch_angle"),
+    _on_batted_ball(pl.col("hit_distance")).alias("distance"),
+    (pl.col("batted_ball") & (pl.col("hit_exit_speed") >= HARD_HIT_MPH)).alias(
+        "hard_hit"
+    ),
+    (pl.col("batted_ball") & is_barrel).alias("barrel"),
+]
+
 
 def summarize(frame: pl.DataFrame, by: list[str]) -> pl.DataFrame:
     return (
@@ -181,9 +206,8 @@ def summarize(frame: pl.DataFrame, by: list[str]) -> pl.DataFrame:
 
 
 def apply_floors(frame: pl.DataFrame) -> pl.DataFrame:
-    return frame.with_columns(
-        [_gate(metric) for metric in RATE_METRICS]
-    )   
+    return frame.with_columns([_gate(metric) for metric in RATE_METRICS])
+
 
 def _gate(metric: str) -> pl.Expr:
     sample = SAMPLE_COLUMNS[metric]

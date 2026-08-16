@@ -2,12 +2,12 @@
 import { computed, ref } from 'vue'
 import { fetchLeaderboard } from '../api'
 import { useResource } from '../composables/useResource'
-import { METRIC_GROUPS, formatValue, type MetricSpec } from '../metrics'
+import { METRIC_GROUPS, OPS, formatValue, type MetricSpec } from '../metrics'
 
 defineProps<{ batterId: number }>()
 const emit = defineEmits<{ select: [batterId: number] }>()
 
-const metric = ref<MetricSpec>(METRIC_GROUPS[0].metrics[3])
+const metric = ref<MetricSpec>(OPS)
 const order = computed(() => (metric.value.higherIsBetter ? 'desc' : 'asc'))
 
 const { data, error } = useResource(() => fetchLeaderboard(metric.value.key, order.value))

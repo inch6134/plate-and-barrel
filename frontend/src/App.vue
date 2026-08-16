@@ -4,6 +4,7 @@ import { fetchPlayers } from './api'
 import { useResource } from './composables/useResource'
 import LeaderboardPanel from './components/LeaderboardPanel.vue'
 import PlayerPanel from './components/PlayerPanel.vue'
+import SwingProfileView from './components/SwingProfileView.vue'
 
 const TABS = ['Swing Profile', 'Spray Chart', 'Situational Splits']
 
@@ -46,6 +47,7 @@ watch(players, (roster) => {
         <button v-for="tab in TABS" :key="tab" type="button" :class="{ active: tab === activeTab }"
           :aria-pressed="tab === activeTab" @click="activeTab = tab">{{ tab }}</button>
       </nav>
+      <SwingProfileView v-if="activeTab === 'Swing Profile'" :batter-id="batterId" />
       <div class="panel placeholder">
         <p class="eyebrow">{{ activeTab }}</p>
         <p>This view is next up.</p>
