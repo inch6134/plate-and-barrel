@@ -31,6 +31,31 @@ CONTACT_METRICS = [
 ]
 LINE_METRICS = ["avg", "obp", "slg", "ops", "k_rate", "bb_rate"]
 
+COUNT_METRICS = [
+    "pa",
+    "ab",
+    "hits",
+    "doubles",
+    "triples",
+    "home_runs",
+    "total_bases",
+    "total_walks",
+    "strikeouts",
+    "batted_balls",
+    "hard_hits",
+    "barrels",
+]
+RATE_METRICS = SWING_METRICS + CONTACT_METRICS + LINE_METRICS
+
+SAMPLE_COLUMNS = (
+    {metric: "swings" for metric in SWING_METRICS}
+    | {metric: "batted_balls" for metric in CONTACT_METRICS}
+    | {metric: "pa" for metric in LINE_METRICS}
+    | {metric: "pa" for metric in COUNT_METRICS}
+)
+
+FLOORS = {"swings": SWING_FLOOR, "batted_balls": BATTED_BALL_FLOOR, "pa": PA_FLOOR}
+
 _barrel_low = pl.max_horizontal(
     124 - pl.col("hit_exit_speed"), BARREL_MAX_WINDOW_DEG[0]
 )
@@ -157,18 +182,13 @@ def summarize(frame: pl.DataFrame, by: list[str]) -> pl.DataFrame:
 
 def apply_floors(frame: pl.DataFrame) -> pl.DataFrame:
     return frame.with_columns(
-        [_gate(metric, "swings", SWING_FLOOR) for metric in SWING_METRICS]
-        + [
-            _gate(metric, "batted_balls", BATTED_BALL_FLOOR)
-            for metric in CONTACT_METRICS
-        ]
-        + [_gate(metric, "pa", PA_FLOOR) for metric in LINE_METRICS]
-    )
+        [_gate(metric) for metric in RATE_METRICS]
+    )   
 
-
-def _gate(metric: str, sample_column: str, floor: int) -> pl.Expr:
+def _gate(metric: str) -> pl.Expr:
+    sample = SAMPLE_COLUMNS[metric]
     return (
-        pl.when(pl.col(sample_column) >= floor)
+        pl.when(pl.col(sample) >= FLOORS[sample])
         .then(pl.col(metric))
         .otherwise(None)
         .alias(metric)
