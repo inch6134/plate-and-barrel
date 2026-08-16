@@ -54,6 +54,13 @@ COLUMNS = [
     "terminating",
 ]
 
+DIMENSIONS = {
+    "count": ("count_state", ["ahead", "even", "behind"]),
+    "inning": ("inning_band", ["early", "middle", "late"]),
+    "bases": ("base_state", ["empty", "on_base", "scoring"]),
+    "hand": ("pitcher_side", ["L", "R"]),
+}
+
 BASERUNNING_EVENTS = [
     "caught_stealing_1b",
     "caught_stealing_2b",
@@ -84,6 +91,11 @@ def batting() -> pl.DataFrame:
             is_pa=pl.col("terminating")
             & ~pl.col("event_type").is_in(BASERUNNING_EVENTS),
             batted_ball=pl.col("in_play") & pl.col("hit_exit_speed").is_not_null(),
+            spray_field=pl.when(pl.col("hit_bearing").abs() <= 15)
+            .then(pl.lit("center"))
+            .when((pl.col("batter_side") == "R") == (pl.col("hit_bearing") < 0))
+            .then(pl.lit("pull"))
+            .otherwise(pl.lit("oppo")),
             count_state=pl.when(pl.col("pre_balls") > pl.col("pre_strikes"))
             .then(pl.lit("ahead"))
             .when(pl.col("pre_balls") == pl.col("pre_strikes"))

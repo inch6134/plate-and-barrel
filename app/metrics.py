@@ -17,6 +17,8 @@ SWING_METRICS = [
     "chase_rate",
     "whiff_rate",
     "contact_rate",
+    "avg_bat_speed",
+    "avg_attack_angle",
 ]
 CONTACT_METRICS = [
     "avg_exit_velo",
@@ -25,8 +27,9 @@ CONTACT_METRICS = [
     "hard_hit_rate",
     "sweet_spot_rate",
     "barrel_rate",
-    "avg_bat_speed",
-    "avg_attack_angle",
+    "pull_rate",
+    "center_rate",
+    "oppo_rate",
 ]
 LINE_METRICS = ["avg", "obp", "slg", "ops", "k_rate", "bb_rate"]
 
@@ -108,6 +111,9 @@ COUNTS = [
     .sum()
     .alias("sweet_spots"),
     _on_batted_balls(is_barrel).sum().alias("barrels"),
+    _on_batted_balls(pl.col("spray_field") == "pull").sum().alias("pulled"),
+    _on_batted_balls(pl.col("spray_field") == "center").sum().alias("up_the_middle"),
+    _on_batted_balls(pl.col("spray_field") == "oppo").sum().alias("opposite"),
     _on_competitive_swings(pl.col("bat_speed")).mean().alias("avg_bat_speed"),
     _on_competitive_swings(pl.col("vertical_bat_attack_angle"))
     .mean()
@@ -155,6 +161,9 @@ RATES = [
     (pl.col("hard_hits") / pl.col("batted_balls")).alias("hard_hit_rate"),
     (pl.col("sweet_spots") / pl.col("batted_balls")).alias("sweet_spot_rate"),
     (pl.col("barrels") / pl.col("batted_balls")).alias("barrel_rate"),
+    (pl.col("pulled") / pl.col("batted_balls")).alias("pull_rate"),
+    (pl.col("up_the_middle") / pl.col("batted_balls")).alias("center_rate"),
+    (pl.col("opposite") / pl.col("batted_balls")).alias("oppo_rate"),
     (pl.col("hits") / pl.col("ab")).alias("avg"),
     (
         (pl.col("hits") + pl.col("total_walks") + pl.col("hit_by_pitches"))
@@ -231,4 +240,13 @@ def _gate(metric: str) -> pl.Expr:
         .then(pl.col(metric))
         .otherwise(None)
         .alias(metric)
+    )
+
+
+def bucketed(frame: pl.DataFrame, column: str, buckets: list[str]) -> list[dict]:
+    return (
+        apply_floors(summarize(frame, [column]))
+        .with_columns(pl.col(column).cast(pl.Enum(buckets)))
+        .sort(column)
+        .to_dicts()
     )

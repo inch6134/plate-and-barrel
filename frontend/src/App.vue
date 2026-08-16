@@ -7,12 +7,17 @@ import PlayerPanel from './components/PlayerPanel.vue'
 import SwingProfileView from './components/SwingProfileView.vue'
 import SprayChartView from './components/SprayChartView.vue'
 import SplitsView from './components/SplitsView.vue'
+import InsightsPanel from './components/InsightsPanel.vue'
 
-const TABS = ['Swing Profile', 'Spray Chart', 'Situational Splits']
+const TABS = [
+  { code: 'swing', label: 'Swing Profile' },
+  { code: 'spray', label: 'Spray Chart' },
+  { code: 'splits', label: 'Situational Splits' },
+]
 
 const { data: players, error } = useResource(fetchPlayers)
 const batterId = ref(0)
-const activeTab = ref(TABS[0])
+const activeTab = ref(TABS[0].code)
 
 watch(players, (roster) => {
   if (roster) {
@@ -46,14 +51,24 @@ watch(players, (roster) => {
 
     <section class="view">
       <nav class="tabs">
-        <button v-for="tab in TABS" :key="tab" type="button" :class="{ active: tab === activeTab }"
-          :aria-pressed="tab === activeTab" @click="activeTab = tab">{{ tab }}</button>
+        <button v-for="tab in TABS" :key="tab.code" type="button" :class="{ active: tab.code === activeTab }"
+          :aria-pressed="tab.code === activeTab" @click="activeTab = tab.code">{{ tab.label }}</button>
       </nav>
-      <SwingProfileView v-if="activeTab === 'Swing Profile'" :batter-id="batterId" />
-      <SprayChartView v-else-if="activeTab === 'Spray Chart'" :batter-id="batterId" />
+      <InsightsPanel :batter-id="batterId" :view="activeTab" />
+
+      <SwingProfileView v-if="activeTab === 'swing'" :batter-id="batterId" />
+      <SprayChartView v-else-if="activeTab === 'spray'" :batter-id="batterId" />
       <SplitsView v-else :batter-id="batterId" />
     </section>
 
     <LeaderboardPanel :batter-id="batterId" @select="batterId = $event" />
   </main>
 </template>
+
+<style scoped>
+.view {
+  display: grid;
+  gap: 0.9rem;
+  align-content: start;
+}
+</style>

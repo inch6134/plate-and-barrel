@@ -40,6 +40,9 @@ export interface StatLine {
   sac_flies: number
   sac_bunts: number
   total_bases: number
+  pulled: number
+  up_the_middle: number
+  opposite: number
   swing_rate: number | null
   zone_swing_rate: number | null
   chase_rate: number | null
@@ -53,6 +56,9 @@ export interface StatLine {
   barrel_rate: number | null
   avg_bat_speed: number | null
   avg_attack_angle: number | null
+  pull_rate: number | null
+  center_rate: number | null
+  oppo_rate: number | null
   avg: number | null
   obp: number | null
   slg: number | null
@@ -128,4 +134,15 @@ export interface Split {
 export interface Splits {
   dimension: string
   splits: Split[]
+}
+
+export interface Insight {
+  metric: string
+  dimension: string | null
+  scope: string
+  value: number
+  baseline: number
+  sample: number
+  sample_column: string
+  score: number
 }

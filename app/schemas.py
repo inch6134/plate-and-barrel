@@ -174,3 +174,20 @@ class Split(BaseModel):
 class Splits(BaseModel):
     dimension: Dimension
     splits: list[Split]
+
+
+class View(StrEnum):
+    SWING = "swing"
+    SPRAY = "spray"
+    SPLITS = "splits"
+
+
+class Insight(BaseModel):
+    metric: str
+    dimension: str | None
+    scope: str
+    value: float
+    baseline: float
+    sample: int
+    sample_column: str
+    score: float
