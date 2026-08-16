@@ -1,3 +1,5 @@
+from datetime import date
+
 from enum import StrEnum
 
 from pydantic import BaseModel
@@ -113,13 +115,45 @@ class Swing(BaseModel):
     barrel: bool
 
 
-class PitchTypeOption(BaseModel):
+class FilterOption(BaseModel):
     code: str
-    pitches: int
+    count: int
 
 
 class SwingProfile(BaseModel):
     player: StatLine
     team: StatLine
     swings: list[Swing]
-    pitch_types: list[PitchTypeOption]
+    pitch_types: list[FilterOption]
+
+
+class Trajectory(StrEnum):
+    GROUND_BALL = "ground_ball"
+    LINE_DRIVE = "line_drive"
+    FLY_BALL = "fly_ball"
+    POPUP = "popup"
+    BUNT_GROUNDER = "bunt_grounder"
+
+
+class Outcome(StrEnum):
+    HIT = "hit"
+    OUT = "out"
+
+
+class BattedBall(BaseModel):
+    bearing: float
+    distance: float
+    exit_velo: float
+    launch_angle: float
+    trajectory: str
+    event_type: str
+    pitch_type: str
+    game_date: date
+    is_hit: bool
+    hard_hit: bool
+    barrel: bool
+
+
+class SprayChart(BaseModel):
+    batted_balls: list[BattedBall]
+    trajectories: list[FilterOption]

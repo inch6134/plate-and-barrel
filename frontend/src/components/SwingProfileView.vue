@@ -28,7 +28,7 @@ const { data, error } = useResource(() => fetchSwingProfile(props.batterId, pitc
       <button v-for="option in data.pitch_types" :key="option.code" type="button"
         :class="{ on: pitchType === option.code }" @click="pitchType = option.code">
         {{ PITCH_TYPE_LABELS[option.code] }}
-        <span class="count numeric">{{ option.pitches }}</span>
+        <span class="count numeric">{{ option.count }}</span>
       </button>
     </nav>
 

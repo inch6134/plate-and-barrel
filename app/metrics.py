@@ -56,6 +56,8 @@ SAMPLE_COLUMNS = (
 
 FLOORS = {"swings": SWING_FLOOR, "batted_balls": BATTED_BALL_FLOOR, "pa": PA_FLOOR}
 
+HIT_EVENTS = ["single", "double", "triple", "home_run"]
+
 _barrel_low = pl.max_horizontal(
     124 - pl.col("hit_exit_speed"), BARREL_MAX_WINDOW_DEG[0]
 )
@@ -190,6 +192,20 @@ SWING_DETAIL = [
         "hard_hit"
     ),
     (pl.col("batted_ball") & is_barrel).alias("barrel"),
+]
+
+SPRAY_DETAIL = [
+    pl.col("hit_bearing").alias("bearing"),
+    pl.col("hit_distance").alias("distance"),
+    pl.col("hit_exit_speed").alias("exit_velo"),
+    pl.col("hit_vertical_angle").alias("launch_angle"),
+    pl.col("hit_trajectory").alias("trajectory"),
+    pl.col("event_type"),
+    pl.col("pitch_type"),
+    pl.col("game_date"),
+    pl.col("event_type").is_in(HIT_EVENTS).alias("is_hit"),
+    (pl.col("hit_exit_speed") >= HARD_HIT_MPH).alias("hard_hit"),
+    is_barrel.alias("barrel"),
 ]
 
 

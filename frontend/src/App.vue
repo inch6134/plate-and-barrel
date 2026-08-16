@@ -5,6 +5,7 @@ import { useResource } from './composables/useResource'
 import LeaderboardPanel from './components/LeaderboardPanel.vue'
 import PlayerPanel from './components/PlayerPanel.vue'
 import SwingProfileView from './components/SwingProfileView.vue'
+import SprayChartView from './components/SprayChartView.vue'
 
 const TABS = ['Swing Profile', 'Spray Chart', 'Situational Splits']
 
@@ -48,7 +49,8 @@ watch(players, (roster) => {
           :aria-pressed="tab === activeTab" @click="activeTab = tab">{{ tab }}</button>
       </nav>
       <SwingProfileView v-if="activeTab === 'Swing Profile'" :batter-id="batterId" />
-      <div class="panel placeholder">
+      <SprayChartView v-else-if="activeTab === 'Spray Chart'" :batter-id="batterId" />
+      <div v-else class="panel placeholder">
         <p class="eyebrow">{{ activeTab }}</p>
         <p>This view is next up.</p>
       </div>

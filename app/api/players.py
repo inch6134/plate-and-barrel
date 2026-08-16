@@ -2,13 +2,16 @@ import polars as pl
 from fastapi import APIRouter, HTTPException
 
 from app.data import batting, roster
-from app.metrics import SWING_DETAIL, summarize
+from app.metrics import HIT_EVENTS, SPRAY_DETAIL, SWING_DETAIL, summarize
 from app.schemas import (
     PitchType,
     Player,
     PlayerDetail,
     StatLine,
     SwingProfile,
+    Outcome,
+    SprayChart,
+    Trajectory,
 )
 
 router = APIRouter(prefix="/api", tags=["players"])
@@ -27,6 +30,19 @@ def _of_type(frame: pl.DataFrame, pitch_type: PitchType | None) -> pl.DataFrame:
         if pitch_type is None
         else frame.filter(pl.col("pitch_type") == pitch_type)
     )
+
+
+def _spray_filters(
+    trajectory: Trajectory | None, outcome: Outcome | None
+) -> list[pl.Expr]:
+    matches = []
+    if trajectory is not None:
+        matches.append(pl.col("hit_trajectory") == trajectory)
+    if outcome is not None:
+        matches.append(
+            pl.col("event_type").is_in(HIT_EVENTS) == (outcome is Outcome.HIT)
+        )
+    return matches
 
 
 @router.get("/players")
@@ -55,14 +71,33 @@ def get_swing_profile(
     options = (
         rows.filter(pl.col("is_pitch"))
         .group_by(code="pitch_type")
-        .agg(pitches=pl.len())
-        .sort("pitches", descending=True)
+        .agg(count=pl.len())
+        .sort("count", descending=True)
     )
     return SwingProfile(
         player=summarize(scoped, []).row(0, named=True),
         team=summarize(_of_type(batting(), pitch_type), []).row(0, named=True),
         swings=swings.select(SWING_DETAIL).to_dicts(),
         pitch_types=options.to_dicts(),
+    )
+
+
+@router.get("/players/{batter_id}/spray-chart")
+def get_spray_chart(
+    batter_id: int,
+    trajectory: Trajectory | None = None,
+    outcome: Outcome | None = None,
+) -> SprayChart:
+    batted = _rows_for(batter_id).filter(pl.col("batted_ball"))
+    scoped = batted.filter(*_spray_filters(trajectory, outcome))
+    trajectories = (
+        batted.group_by(code="hit_trajectory")
+        .agg(count=pl.len())
+        .sort("count", descending=True)
+    )
+    return SprayChart(
+        batted_balls=scoped.select(SPRAY_DETAIL).to_dicts(),
+        trajectories=trajectories.to_dicts(),
     )
 
 

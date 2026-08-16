@@ -88,14 +88,33 @@ export interface Swing {
   barrel: boolean
 }
 
-export interface PitchTypeOption {
+export interface FilterOption {
   code: string
-  pitches: number
+  count: number
 }
 
 export interface SwingProfile {
   player: StatLine
   team: StatLine
   swings: Swing[]
-  pitch_types: PitchTypeOption[]
+  pitch_types: FilterOption[]
+}
+
+export interface BattedBall {
+  bearing: number
+  distance: number
+  exit_velo: number
+  launch_angle: number
+  trajectory: string
+  event_type: string
+  pitch_type: string
+  game_date: string
+  is_hit: boolean
+  hard_hit: boolean
+  barrel: boolean
+}
+
+export interface SprayChart {
+  batted_balls: BattedBall[]
+  trajectories: FilterOption[]
 }
