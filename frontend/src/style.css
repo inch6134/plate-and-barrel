@@ -24,7 +24,13 @@
   --brown: #2f241d;
   --ink-2: #56483d;
   --muted: #736759;
+  /* For marks that should recede rather than be read: the routine contact a
+     spray chart is not asking you to look at. Below text contrast on purpose. */
+  --faint: #b0a99f;
   --gold: #ffc425;
+  /* Gold works as a fill but a thin gold stroke on light paper is unreadable, so
+     line-weight marks use a darkened gold that still reads as the same accent. */
+  --gold-ink: #b8860b;
 
   --page: #efe9df;
   --surface: #ffffff;
@@ -122,6 +128,59 @@ select {
   flex: 1;
   height: 1px;
   background: var(--line);
+}
+
+/* Detail readout ------------------------------------------------------------
+   Every view ends in the same gesture: pick a mark, read its numbers. Giving it
+   one treatment everywhere makes it a component of the page rather than a
+   caption, and the left gold rule marks it as the thing that just responded. */
+
+.readout {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.1rem;
+  min-height: 3rem;
+  margin: 0.9rem 0 0;
+  padding: 0.6rem 0.9rem;
+  background: var(--tint);
+  border-left: 3px solid var(--gold);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  font-size: 0.86rem;
+}
+
+.readout.empty {
+  align-items: center;
+  border-left-color: var(--line);
+  color: var(--muted);
+}
+
+.readout .fact {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.readout .term {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.readout .fact-value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* The headline fact keeps its own weight so the eye lands on what was picked. */
+.readout .lede {
+  padding-right: 0.9rem;
+  border-right: 1px solid var(--rule);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 /* Controls ----------------------------------------------------------------- */

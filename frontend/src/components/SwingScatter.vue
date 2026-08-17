@@ -12,7 +12,7 @@ const props = defineProps<{
 
 const WIDTH = 660
 const HEIGHT = 440
-const MARGIN = { top: 18, right: 18, bottom: 64, left: 52 }
+const MARGIN = { top: 18, right: 18, bottom: 46, left: 52 }
 const HARD_HIT = 95
 const BAT_SPEED_DOMAIN = [20, 82]
 const EXIT_VELO_DOMAIN = [20, 120]
@@ -29,8 +29,6 @@ const y = scaleLinear()
   .domain(EXIT_VELO_DOMAIN)
   .range([HEIGHT - MARGIN.bottom, MARGIN.top])
   .clamp(true)
-
-const whiffRow = HEIGHT - MARGIN.bottom + 22
 
 const draw = (element: SVGSVGElement) => {
   const root = select(element)
@@ -94,26 +92,6 @@ const draw = (element: SVGSVGElement) => {
 
   root
     .append('g')
-    .selectAll<SVGLineElement, Swing>('line')
-    .data(props.swings.filter((swing) => swing.result === 'whiff'))
-    .join('line')
-    .attr('class', 'whiff')
-    .attr('x1', (swing) => x(swing.bat_speed))
-    .attr('x2', (swing) => x(swing.bat_speed))
-    .attr('y1', whiffRow - 5)
-    .attr('y2', whiffRow + 5)
-
-  root
-    .append('text')
-    .attr('class', 'axis-title')
-    .attr('x', MARGIN.left)
-    .attr('y', whiffRow + 3)
-    .attr('text-anchor', 'end')
-    .attr('dx', -6)
-    .text('Whiffs')
-
-  root
-    .append('g')
     .selectAll<SVGCircleElement, Swing>('circle')
     .data(props.swings.filter((swing) => swing.exit_velo !== null))
     .join('circle')
@@ -141,15 +119,30 @@ onMounted(() => {
       <span class="key player">Player avg bat speed</span>
       <span class="key team">Team avg</span>
     </figcaption>
-    <p v-if="hovered" class="readout numeric">
-      {{ PITCH_TYPE_LABELS[hovered.pitch_type] }} &middot;
-      {{ hovered.bat_speed.toFixed(1) }} mph bat speed &middot;
-      {{ hovered.exit_velo?.toFixed(1) }} mph off the bat &middot;
-      {{ hovered.launch_angle?.toFixed(0) }}&deg; &middot;
-      {{ hovered.distance?.toFixed(0) }} ft &middot;
-      {{ hovered.event_type?.replace(/_/g, ' ') }}
-    </p>
-    <p v-else class="readout muted">Point at a batted ball for its detail.</p>
+    <div v-if="hovered" class="readout">
+      <span class="lede">{{ hovered.event_type?.replace(/_/g, ' ') }}</span>
+      <span class="fact">
+        <span class="term">Bat speed</span>
+        <span class="fact-value">{{ hovered.bat_speed.toFixed(1) }} mph</span>
+      </span>
+      <span class="fact">
+        <span class="term">Exit velo</span>
+        <span class="fact-value">{{ hovered.exit_velo?.toFixed(1) }} mph</span>
+      </span>
+      <span class="fact">
+        <span class="term">Launch</span>
+        <span class="fact-value">{{ hovered.launch_angle?.toFixed(0) }}&deg;</span>
+      </span>
+      <span class="fact">
+        <span class="term">Distance</span>
+        <span class="fact-value">{{ hovered.distance?.toFixed(0) }} ft</span>
+      </span>
+      <span class="fact">
+        <span class="term">Pitch</span>
+        <span class="fact-value">{{ PITCH_TYPE_LABELS[hovered.pitch_type] }}</span>
+      </span>
+    </div>
+    <p v-else class="readout empty">Point at a batted ball for its detail.</p>
   </figure>
 </template>
 
@@ -189,7 +182,7 @@ svg :deep(.mean) {
 }
 
 svg :deep(.mean.player) {
-  stroke: var(--gold);
+  stroke: var(--gold-ink);
 }
 
 svg :deep(.mean.team) {
@@ -198,37 +191,41 @@ svg :deep(.mean.team) {
   stroke-width: 1;
 }
 
-svg :deep(.whiff) {
-  stroke: var(--muted);
-  opacity: 0.45;
-}
-
 svg :deep(circle) {
   cursor: crosshair;
 }
 
+/* Filled rather than hollow so overlapping points stay legible and the whole
+   disc is a hover target, not just its outline. */
 svg :deep(.contact) {
-  fill: none;
+  fill: var(--tint);
   stroke: var(--muted);
-  opacity: 0.7;
 }
 
 svg :deep(.hard) {
   fill: var(--brown);
-  opacity: 0.75;
+  stroke: var(--brown);
+  opacity: 0.8;
 }
 
 svg :deep(.barrel) {
   fill: var(--gold);
   stroke: var(--brown);
+  stroke-width: 1.5;
+}
+
+svg :deep(circle:hover) {
+  stroke: var(--brown);
+  stroke-width: 3;
+  opacity: 1;
 }
 
 figcaption {
   display: flex;
   flex-wrap: wrap;
   gap: 1.1rem;
-  margin-top: 0.5rem;
-  font-size: 0.8rem;
+  margin-top: 0.6rem;
+  font-size: 0.84rem;
   color: var(--muted);
 }
 
@@ -252,6 +249,7 @@ figcaption {
 }
 
 .key.contact::before {
+  background: var(--tint);
   border: 1px solid var(--muted);
 }
 
@@ -264,20 +262,11 @@ figcaption {
 }
 
 .key.player::before {
-  background: var(--gold);
+  background: var(--gold-ink);
 }
 
 .key.team::before {
   background: var(--muted);
 }
 
-.readout {
-  margin: 0.7rem 0 0;
-  font-size: 0.85rem;
-  min-height: 1.3em;
-}
-
-.readout.muted {
-  color: var(--muted);
-}
 </style>

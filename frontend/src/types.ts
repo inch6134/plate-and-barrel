@@ -121,6 +121,8 @@ export interface BattedBall {
 }
 
 export interface SprayChart {
+  player: StatLine
+  team: StatLine
   batted_balls: BattedBall[]
   trajectories: FilterOption[]
 }

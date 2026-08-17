@@ -14,6 +14,7 @@ COLUMNS = [
     "inning",
     "pre_balls",
     "pre_strikes",
+    "pre_outs",
     "pre_basecode",
     "batter_team",
     "batter_bam_id",
@@ -21,6 +22,7 @@ COLUMNS = [
     "batter_name_last",
     "batter_side",
     "pitcher_side",
+    "pitcher_type",
     "is_pitch",
     "pitch_type",
     "plate_x",
@@ -50,9 +52,11 @@ COLUMNS = [
 
 DIMENSIONS = {
     "count": ("count_state", ["ahead", "even", "behind"]),
-    "inning": ("inning_band", ["early", "middle", "late"]),
+    "outs": ("out_state", ["0", "1", "2"]),
     "bases": ("base_state", ["empty", "on_base", "scoring"]),
+    "inning": ("inning_band", ["early", "middle", "late"]),
     "hand": ("pitcher_side", ["L", "R"]),
+    "role": ("pitcher_role", ["starter", "reliever"]),
 }
 
 BASERUNNING_EVENTS = [
@@ -105,6 +109,10 @@ def batting() -> pl.DataFrame:
             .when(pl.col("pre_basecode") >= 10)
             .then(pl.lit("scoring"))
             .otherwise(pl.lit("on_base")),
+            out_state=pl.col("pre_outs").cast(pl.Utf8),
+            pitcher_role=pl.when(pl.col("pitcher_type") == "S")
+            .then(pl.lit("starter"))
+            .otherwise(pl.lit("reliever")),
         )
     )
 

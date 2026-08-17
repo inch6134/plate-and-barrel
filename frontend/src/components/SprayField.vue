@@ -57,8 +57,14 @@ const diamond = [
   project(-45, BASE_PATH_FT),
 ]
 
-const size = scaleSqrt().domain([40, 120]).range([3, 7.5]).clamp(true)
+const size = scaleSqrt().domain([40, 120]).range([3.5, 8]).clamp(true)
 const path = line()
+
+/* Colour is how well it was struck, shape is what it produced. Keeping them on
+   separate channels matters because they disagree often: hard-hit balls go for
+   hits 48.7% of the time against 23.7% for everything else. */
+const quality = (ball: BattedBall) =>
+  ball.barrel ? 'barrel' : ball.hard_hit ? 'hard' : 'plain'
 
 const draw = (element: SVGSVGElement) => {
   const root = select(element)
@@ -99,13 +105,29 @@ const draw = (element: SVGSVGElement) => {
 
   root
     .append('g')
-    .selectAll<SVGCircleElement, BattedBall>('circle')
+    .selectAll<SVGGElement, BattedBall>('g')
     .data(props.battedBalls)
-    .join('circle')
-    .attr('class', (ball) => (ball.is_hit ? 'ball hit' : 'ball out'))
-    .attr('cx', (ball) => project(ball.bearing, ball.distance)[0])
-    .attr('cy', (ball) => project(ball.bearing, ball.distance)[1])
-    .attr('r', (ball) => size(ball.exit_velo))
+    .join('g')
+    .attr('class', (ball) =>
+      ['ball', quality(ball), ball.is_hit ? 'hit' : 'out'].join(' '),
+    )
+    .attr('transform', (ball) => `translate(${project(ball.bearing, ball.distance)})`)
+    .each(function (ball) {
+      const radius = size(ball.exit_velo)
+      const mark = select(this)
+      if (ball.is_hit) {
+        mark.append('circle').attr('class', 'mark').attr('r', radius)
+      } else {
+        /* An X spans its diagonal, so its arms stop short of the radius to keep
+           it the same visual weight as a disc of the same exit velocity. */
+        const arm = radius * 0.78
+        mark
+          .append('path')
+          .attr('class', 'mark')
+          .attr('d', `M${-arm},${-arm}L${arm},${arm}M${-arm},${arm}L${arm},${-arm}`)
+        mark.append('circle').attr('class', 'target').attr('r', radius)
+      }
+    })
     .on('click', (_event, ball) => (selected.value = ball))
 }
 
@@ -120,20 +142,38 @@ onMounted(() => {
     <svg ref="canvas" :viewBox="`${FRAME.x} ${FRAME.y} ${FRAME.width} ${FRAME.height}`" role="img"
       aria-label="Batted ball locations" />
     <figcaption>
-      <span class="key hit">Hit</span>
-      <span class="key out">Out</span>
-      <span>Point size is exit velocity</span>
+      <span class="shape hit">Hit</span>
+      <span class="shape out">Out</span>
+      <span class="swatch barrel">Barrel</span>
+      <span class="swatch hard">Hard-hit</span>
+      <span class="swatch plain">Hit</span>
+      <span>Size is exit velocity</span>
     </figcaption>
-    <p v-if="selected" class="readout numeric">
-      {{ selected.event_type.replace(/_/g, ' ') }} &middot;
-      {{ TRAJECTORY_LABELS[selected.trajectory] }} &middot;
-      {{ selected.exit_velo.toFixed(1) }} mph &middot;
-      {{ selected.launch_angle.toFixed(0) }}&deg; &middot;
-      {{ selected.distance.toFixed(0) }} ft &middot;
-      {{ PITCH_TYPE_LABELS[selected.pitch_type] }} &middot;
-      {{ selected.game_date }}
-    </p>
-    <p v-else class="readout muted">Select a batted ball for its detail.</p>
+
+    <div v-if="selected" class="readout">
+      <span class="lede">{{ selected.event_type.replace(/_/g, ' ') }}</span>
+      <span class="fact">
+        <span class="term">Exit velo</span>
+        <span class="fact-value">{{ selected.exit_velo.toFixed(1) }} mph</span>
+      </span>
+      <span class="fact">
+        <span class="term">Launch</span>
+        <span class="fact-value">{{ selected.launch_angle.toFixed(0) }}&deg;</span>
+      </span>
+      <span class="fact">
+        <span class="term">Distance</span>
+        <span class="fact-value">{{ selected.distance.toFixed(0) }} ft</span>
+      </span>
+      <span class="fact">
+        <span class="term">{{ TRAJECTORY_LABELS[selected.trajectory] }}</span>
+        <span class="fact-value">off a {{ PITCH_TYPE_LABELS[selected.pitch_type] }}</span>
+      </span>
+      <span class="fact">
+        <span class="term">Date</span>
+        <span class="fact-value">{{ selected.game_date }}</span>
+      </span>
+    </div>
+    <p v-else class="readout empty">Select a batted ball for its detail.</p>
   </figure>
 </template>
 
@@ -172,51 +212,101 @@ svg :deep(.ball) {
   cursor: pointer;
 }
 
-svg :deep(.ball.hit) {
-  fill: var(--gold);
+/* Shape is the outcome, colour is how well it was struck. Hits are discs, outs
+   are crosses, and both scale with exit velocity. */
+svg :deep(.ball circle.mark) {
+  stroke: var(--brown);
+  stroke-width: 1;
+}
+
+svg :deep(.ball path.mark) {
+  fill: none;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+/* An invisible disc over each cross, so the hover target is the whole mark
+   rather than two hairlines. */
+svg :deep(.ball .target) {
+  fill: transparent;
+  stroke: none;
+}
+
+svg :deep(.ball.plain circle.mark) {
+  fill: var(--surface);
+}
+
+svg :deep(.ball.plain path.mark) {
+  stroke: var(--faint);
+}
+
+svg :deep(.ball.hard circle.mark) {
+  fill: var(--brown);
+}
+
+svg :deep(.ball.hard path.mark) {
   stroke: var(--brown);
 }
 
-svg :deep(.ball.out) {
-  fill: none;
-  stroke: var(--muted);
-  opacity: 0.75;
+svg :deep(.ball.barrel circle.mark) {
+  fill: var(--gold);
+}
+
+svg :deep(.ball.barrel path.mark) {
+  stroke: var(--gold-ink);
+}
+
+svg :deep(.ball:hover circle.mark) {
+  stroke-width: 3;
+}
+
+svg :deep(.ball:hover path.mark) {
+  stroke: var(--brown);
+  stroke-width: 4;
 }
 
 figcaption {
   display: flex;
   flex-wrap: wrap;
   gap: 1.1rem;
-  margin-top: 0.5rem;
-  font-size: 0.8rem;
+  margin-top: 0.6rem;
+  font-size: 0.84rem;
   color: var(--muted);
 }
 
-.key::before {
+.swatch::before {
   content: '';
   display: inline-block;
-  width: 9px;
-  height: 9px;
-  margin-right: 0.3rem;
+  width: 10px;
+  height: 10px;
+  margin-right: 0.35rem;
+  border: 1px solid var(--brown);
   border-radius: 50%;
 }
 
-.key.hit::before {
+.swatch.barrel::before {
   background: var(--gold);
-  border: 1px solid var(--brown);
 }
 
-.key.out::before {
-  border: 1px solid var(--muted);
+.swatch.hard::before {
+  background: var(--brown);
 }
 
-.readout {
-  margin: 0.7rem 0 0;
-  font-size: 0.85rem;
-  min-height: 1.3em;
+.swatch.plain::before {
+  background: var(--surface);
 }
 
-.readout.muted {
-  color: var(--muted);
+.shape::before {
+  margin-right: 0.3rem;
+  color: var(--brown);
+  font-weight: 700;
+}
+
+.shape.hit::before {
+  content: '●';
+}
+
+.shape.out::before {
+  content: '✕';
 }
 </style>

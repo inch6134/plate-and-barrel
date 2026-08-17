@@ -81,7 +81,7 @@ export const CONTACT_QUALITY: MetricGroup = {
 }
 
 export const BATTED_BALL_DIRECTION: MetricGroup = {
-  label: 'Batted ball direction',
+  label: 'Direction',
   sample: 'batted_balls',
   metrics: [
     { key: 'pull_rate', label: 'Pull%', format: 'rate', unit: 'pts', higherIsBetter: true },
@@ -114,17 +114,33 @@ export const METRIC_GROUPS: MetricGroup[] = [
   COUNTING,
 ]
 
-/* Max EV is a single best swing rather than a tendency, so it says nothing useful
-   about how a batter behaves in one split. */
-export const SPLIT_METRICS = [
-  ...SWING_DECISIONS.metrics,
-  ...BAT_TRACKING.metrics,
-  ...CONTACT_QUALITY.metrics,
-  ...BATTED_BALL_DIRECTION.metrics,
-].filter((metric) => metric.key !== 'max_exit_velo')
+/* Every rate can be split, but no count can: a bucket holds one batter's 30 PA
+   against the team's 830, so a count would plot as a baseline off the chart.
+   Max EV goes too, being one best swing rather than a tendency. */
+export const SPLIT_METRIC_GROUPS: MetricGroup[] = METRIC_GROUPS.filter(
+  (group) => group !== COUNTING,
+).map((group) => ({
+  ...group,
+  metrics: group.metrics.filter((metric) => metric.key !== 'max_exit_velo'),
+}))
+
+export const SPLIT_METRICS = SPLIT_METRIC_GROUPS.flatMap((group) => group.metrics)
+
+export const DEFAULT_SPLIT_METRIC = SWING_DECISIONS.metrics[2]
 
 export const formatValue = (value: number | null, format: Format) =>
-  value === null ? '-' : FORMATTERS[format](value)
+  value === null ? '—' : FORMATTERS[format](value)
+
+/* Rates are stored as fractions and printed as percentages, so a value carries a
+   percent sign while the gap between two of them is in percentage points. */
+export const valueUnit = (metric: MetricSpec) =>
+  metric.format === 'rate' ? '%' : metric.unit === '°' ? '°' : metric.unit ? ` ${metric.unit}` : ''
+
+export const gapUnit = (metric: MetricSpec) =>
+  metric.format === 'rate' ? ' pts' : valueUnit(metric)
+
+export const formatGap = (gap: number, metric: MetricSpec) =>
+  `${gap > 0 ? '+' : ''}${gap.toFixed(1)}${gapUnit(metric)}`
 
 export const METRIC_SPECS = new Map<string, MetricSpec>(
   METRIC_GROUPS.flatMap((group) => group.metrics).map((metric) => [metric.key, metric]),

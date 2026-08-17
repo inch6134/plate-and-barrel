@@ -114,21 +114,22 @@ h1 {
   align-content: start;
 }
 
+/* Wraps rather than scrolls. A horizontal scroller hides tabs behind a gesture,
+   and three tabs always fit in at most two rows. */
 .tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.2rem;
   border-bottom: 1px solid var(--line);
-  overflow-x: auto;
 }
 
 .tabs button {
-  flex: none;
   margin-bottom: -1px;
   padding: 0.65rem 1.05rem;
   background: none;
   border: 0;
   border-bottom: 2px solid transparent;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;

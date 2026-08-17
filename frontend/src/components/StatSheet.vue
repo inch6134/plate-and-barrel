@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { METRIC_GROUPS, formatValue } from '../metrics'
+import { METRIC_GROUPS, SAMPLE_LABELS, formatValue } from '../metrics'
 import type { StatLine } from '../types'
 
 defineProps<{ stats: StatLine }>()
@@ -11,7 +11,10 @@ defineProps<{ stats: StatLine }>()
 
     <div class="groups">
       <section v-for="group in METRIC_GROUPS" :key="group.label">
-        <h3 class="eyebrow">{{ group.label }}</h3>
+        <h3 class="eyebrow">
+          {{ group.label }}
+          <span class="sample">{{ SAMPLE_LABELS[group.sample] }} {{ stats[group.sample] }}</span>
+        </h3>
         <dl>
           <div v-for="metric in group.metrics" :key="metric.key" class="row">
             <dt>{{ metric.label }}</dt>
@@ -32,13 +35,34 @@ defineProps<{ stats: StatLine }>()
   column-gap: 2rem;
 }
 
+/* Each group is a card of its own so the eye can tell where one ends and the
+   next begins, which a run of identical rows could not do. */
 .groups > section {
   break-inside: avoid;
-  margin-bottom: 1.4rem;
+  margin-bottom: 1.1rem;
+  padding: 0.75rem 0.9rem 0.5rem;
+  background: var(--tint);
+  border-radius: var(--radius);
 }
 
 h3 {
-  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--rule);
+  color: var(--brown);
+  white-space: nowrap;
+}
+
+/* Naming the denominator here is what tells a reader why Bat Speed sits apart
+   from Avg EV: one is measured over swings, the other over batted balls. */
+.sample {
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--muted);
 }
 
 dl {
@@ -49,13 +73,8 @@ dl {
   display: flex;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.34rem 0;
-  border-bottom: 1px solid var(--line);
-  font-size: 0.9rem;
-}
-
-.row:last-child {
-  border-bottom: 0;
+  padding: 0.3rem 0;
+  font-size: 0.92rem;
 }
 
 dt {

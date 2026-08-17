@@ -76,10 +76,34 @@ def test_thin_samples_are_gated_within_each_bucket():
     assert all(s["player"]["chase_rate"] is None for s in splits["splits"])
 
 
+def test_outs_split_buckets_by_the_pre_pitch_out_count():
+    splits = client.get(
+        "/api/players/592518/splits", params={"dimension": "outs"}
+    ).json()
+    assert [s["bucket"] for s in splits["splits"]] == ["0", "1", "2"]
+    assert sum(s["player"]["pitches"] for s in splits["splits"]) == 360
+
+
+def test_role_split_separates_starters_from_relievers():
+    splits = client.get(
+        "/api/players/592518/splits", params={"dimension": "role"}
+    ).json()
+    assert [s["bucket"] for s in splits["splits"]] == ["starter", "reliever"]
+    assert [s["player"]["swings"] for s in splits["splits"]] == [121, 75]
+
+
 def test_spray_chart_returns_every_batted_ball_with_its_trajectory_options():
     spray = client.get("/api/players/592518/spray-chart").json()
     assert len(spray["batted_balls"]) == 69
     assert sum(option["count"] for option in spray["trajectories"]) == 69
+
+
+def test_spray_chart_carries_a_team_baseline_over_the_same_filter():
+    spray = client.get(
+        "/api/players/592518/spray-chart", params={"trajectory": "fly_ball"}
+    ).json()
+    assert spray["player"]["batted_balls"] == len(spray["batted_balls"])
+    assert spray["team"]["batted_balls"] == 154
 
 
 def test_spray_outcome_filter_keeps_only_hits():

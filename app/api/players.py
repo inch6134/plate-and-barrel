@@ -91,14 +91,18 @@ def get_spray_chart(
     trajectory: Trajectory | None = None,
     outcome: Outcome | None = None,
 ) -> SprayChart:
+    matches = _spray_filters(trajectory, outcome)
     batted = player_rows(batter_id).filter(pl.col("batted_ball"))
-    scoped = batted.filter(*_spray_filters(trajectory, outcome))
+    scoped = batted.filter(*matches)
+    team = batting().filter(pl.col("batted_ball")).filter(*matches)
     trajectories = (
         batted.group_by(code="hit_trajectory")
         .agg(count=pl.len())
         .sort("count", descending=True)
     )
     return SprayChart(
+        player=summarize(scoped, []).row(0, named=True),
+        team=summarize(team, []).row(0, named=True),
         batted_balls=scoped.select(SPRAY_DETAIL).to_dicts(),
         trajectories=trajectories.to_dicts(),
     )

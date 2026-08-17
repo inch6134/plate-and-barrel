@@ -160,15 +160,19 @@ class BattedBall(BaseModel):
 
 
 class SprayChart(BaseModel):
+    player: StatLine
+    team: StatLine
     batted_balls: list[BattedBall]
     trajectories: list[FilterOption]
 
 
 class Dimension(StrEnum):
     COUNT = "count"
-    INNING = "inning"
+    OUTS = "outs"
     BASES = "bases"
+    INNING = "inning"
     HAND = "hand"
+    ROLE = "role"
 
 
 class Split(BaseModel):

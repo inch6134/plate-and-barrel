@@ -63,7 +63,11 @@ counts hold still as the caller filters.
 | `trajectory` | no       | `ground_ball` `line_drive` `fly_ball` `popup` `bunt_grounder` |
 | `outcome`    | no       | `hit` or `out`                                                 |
 
-`{ batted_balls, trajectories }`, over balls in play with a tracked exit speed.
+`{ player, team, batted_balls, trajectories }`, over balls in play with a tracked
+exit speed. `player` and `team` are `StatLine`s over the same filtered scope, in
+the same shape the swing profile returns, so the view can show pull, center and
+oppo rates against the team without a second request.
+
 `bearing` is degrees off dead center, negative to left field and positive to right.
 `outcome` splits hit versus out rather than by `event_type`, since 8 of the 13
 batted-ball event types occur fewer than 8 times team-wide.
@@ -73,13 +77,20 @@ filtering.
 
 ## GET /api/players/{batter_id}/splits
 
-| Param       | Required | Values                                |
-| ----------- | -------- | ------------------------------------- |
-| `dimension` | no       | `count` (default) `inning` `bases` `hand` |
+| Param       | Required | Values                                                       |
+| ----------- | -------- | ------------------------------------------------------------ |
+| `dimension` | no       | `count` (default) `outs` `bases` `inning` `hand` `role`      |
 
-`{ dimension, splits }`, one entry per bucket in a fixed order: count is
-ahead / even / behind, inning is 1-3 / 4-6 / 7+, bases is empty / on base /
-scoring position, hand is L / R.
+`{ dimension, splits }`, one entry per bucket in a fixed order:
+
+| Dimension | Buckets                                   |
+| --------- | ----------------------------------------- |
+| `count`   | ahead / even / behind                     |
+| `outs`    | `0` / `1` / `2`, from `pre_outs`          |
+| `bases`   | empty / on base / scoring position        |
+| `inning`  | 1-3 / 4-6 / 7+                            |
+| `hand`    | L / R, the pitcher's throwing side        |
+| `role`    | starter / reliever, from `pitcher_type`   |
 
 Each entry carries a full `StatLine` for both the player and the team in that
 bucket, so switching metrics is client-side and needs no request. Sample floors

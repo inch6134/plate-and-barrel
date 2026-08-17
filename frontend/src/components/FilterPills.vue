@@ -25,7 +25,7 @@ button {
   background: var(--surface);
   border: 1px solid var(--rule);
   border-radius: 999px;
-  font-size: 0.84rem;
+  font-size: 0.88rem;
   color: var(--ink-2);
   cursor: pointer;
 }
@@ -43,7 +43,7 @@ button.on {
 
 .count {
   margin-left: 0.3rem;
-  font-size: 0.76rem;
-  opacity: 0.65;
+  font-size: 0.8rem;
+  opacity: 0.7;
 }
 </style>

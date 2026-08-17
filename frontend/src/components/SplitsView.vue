@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { fetchSplits } from '../api'
 import { useResource } from '../composables/useResource'
-import { SPLIT_METRICS, formatValue } from '../metrics'
+import { DEFAULT_SPLIT_METRIC, SPLIT_METRIC_GROUPS, formatValue } from '../metrics'
 import { BUCKET_LABELS, DIMENSIONS } from '../splits'
 import FilterPills from './FilterPills.vue'
 import type { MetricSpec } from '../metrics'
@@ -12,11 +12,11 @@ const props = defineProps<{ batterId: number }>()
 
 const PLOT_LEFT = 170
 const PLOT_RIGHT = 630
-const ROW_HEIGHT = 46
-const TOP = 14
+const ROW_HEIGHT = 52
+const TOP = 6
 
 const dimension = ref(DIMENSIONS[0].code)
-const metric = ref<MetricSpec>(SPLIT_METRICS[2])
+const metric = ref<MetricSpec>(DEFAULT_SPLIT_METRIC)
 const selected = ref<Split>()
 
 watch([() => props.batterId, dimension], () => (selected.value = undefined))
@@ -57,9 +57,11 @@ const plotted = computed(() => rows.value.filter((split) => valueOf(split, 'play
       <header class="head">
         <h3 class="eyebrow">Player against team baseline</h3>
         <select v-model="metric" class="field" aria-label="Metric">
-          <option v-for="option in SPLIT_METRICS" :key="option.key" :value="option">
-            {{ option.label }}
-          </option>
+          <optgroup v-for="group in SPLIT_METRIC_GROUPS" :key="group.label" :label="group.label">
+            <option v-for="option in group.metrics" :key="option.key" :value="option">
+              {{ option.label }}
+            </option>
+          </optgroup>
         </select>
       </header>
 
@@ -79,8 +81,11 @@ const plotted = computed(() => rows.value.filter((split) => valueOf(split, 'play
               y2="21" />
             <circle class="team" :cx="scale(valueOf(split, 'team')!)" cy="21" r="5" />
             <circle class="player" :cx="scale(valueOf(split, 'player')!)" cy="21" r="6" />
-            <text class="reading numeric" :x="scale(valueOf(split, 'player')!)" y="40" text-anchor="middle">
+            <text class="reading numeric" :x="scale(valueOf(split, 'player')!)" y="12" text-anchor="middle">
               {{ formatValue(valueOf(split, 'player'), metric.format) }}
+            </text>
+            <text class="baseline numeric" :x="scale(valueOf(split, 'team')!)" y="39" text-anchor="middle">
+              team {{ formatValue(valueOf(split, 'team'), metric.format) }}
             </text>
           </template>
           <text v-else class="reading numeric" :x="PLOT_LEFT" y="26">Below sample floor</text>
@@ -100,15 +105,34 @@ const plotted = computed(() => rows.value.filter((split) => valueOf(split, 'play
         <span class="key team">Team</span>
       </figcaption>
 
-      <p v-if="selected" class="readout numeric">
-        {{ BUCKET_LABELS[selected.bucket] }} &middot;
-        {{ selected.player.pitches }} pitches &middot;
-        {{ selected.player.swings }} swings &middot;
-        {{ selected.player.whiffs }} whiffs &middot;
-        {{ selected.player.batted_balls }} batted balls &middot;
-        {{ selected.player.hits }} hits in {{ selected.player.ab }} AB
-      </p>
-      <p v-else class="readout muted">Select a split for its underlying counts.</p>
+      <div v-if="selected" class="readout">
+        <span class="lede">{{ BUCKET_LABELS[selected.bucket] }}</span>
+        <span class="fact">
+          <span class="term">PA</span>
+          <span class="fact-value">{{ selected.player.pa }}</span>
+        </span>
+        <span class="fact">
+          <span class="term">Pitches</span>
+          <span class="fact-value">{{ selected.player.pitches }}</span>
+        </span>
+        <span class="fact">
+          <span class="term">Swings</span>
+          <span class="fact-value">{{ selected.player.swings }}</span>
+        </span>
+        <span class="fact">
+          <span class="term">Whiffs</span>
+          <span class="fact-value">{{ selected.player.whiffs }}</span>
+        </span>
+        <span class="fact">
+          <span class="term">Batted balls</span>
+          <span class="fact-value">{{ selected.player.batted_balls }}</span>
+        </span>
+        <span class="fact">
+          <span class="term">Hits</span>
+          <span class="fact-value">{{ selected.player.hits }} of {{ selected.player.ab }} AB</span>
+        </span>
+      </div>
+      <p v-else class="readout empty">Select a split for its underlying counts.</p>
     </section>
   </div>
 </template>
@@ -169,8 +193,14 @@ svg {
 }
 
 .reading {
+  fill: var(--brown);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.baseline {
   fill: var(--muted);
-  font-size: 12.5px;
+  font-size: 12px;
 }
 
 .axis {
@@ -186,7 +216,7 @@ figcaption {
   display: flex;
   gap: 1.1rem;
   margin-top: 0.6rem;
-  font-size: 0.8rem;
+  font-size: 0.84rem;
   color: var(--muted);
 }
 
@@ -207,15 +237,9 @@ figcaption {
   border: 2px solid var(--muted);
 }
 
-.empty,
-.readout {
+.empty {
   margin: 0.7rem 0 0;
-  font-size: 0.85rem;
-  min-height: 1.3em;
-}
-
-.empty,
-.readout.muted {
+  font-size: 0.9rem;
   color: var(--muted);
 }
 </style>
