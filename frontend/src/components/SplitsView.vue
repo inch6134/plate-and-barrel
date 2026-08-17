@@ -49,14 +49,14 @@ const plotted = computed(() => rows.value.filter((split) => valueOf(split, 'play
 </script>
 
 <template>
-  <div v-if="error" class="panel pad">{{ error }}</div>
+  <div v-if="error" class="panel">{{ error }}</div>
   <div v-else-if="data" class="splits">
     <FilterPills v-model="dimension" :options="DIMENSIONS" />
 
-    <section class="panel pad">
+    <section class="panel">
       <header class="head">
         <h3 class="eyebrow">Player against team baseline</h3>
-        <select v-model="metric" aria-label="Metric">
+        <select v-model="metric" class="field" aria-label="Metric">
           <option v-for="option in SPLIT_METRICS" :key="option.key" :value="option">
             {{ option.label }}
           </option>
@@ -67,7 +67,7 @@ const plotted = computed(() => rows.value.filter((split) => valueOf(split, 'play
         Every bucket falls below the sample floor for {{ metric.label }}.
       </p>
 
-      <svg v-else :viewBox="`0 0 660 ${height}`" role="img" :aria-label="`${metric.label} by split`">
+      <svg v-else class="plot" :viewBox="`0 0 660 ${height}`" role="img" :aria-label="`${metric.label} by split`">
         <g v-for="(split, index) in rows" :key="split.bucket" :transform="`translate(0, ${TOP + index * ROW_HEIGHT})`"
           :class="{ row: true, chosen: selected?.bucket === split.bucket }" @click="selected = split">
           <rect class="hit-area" x="0" y="0" width="660" :height="ROW_HEIGHT" />
@@ -119,27 +119,17 @@ const plotted = computed(() => rows.value.filter((split) => valueOf(split, 'play
   gap: 0.7rem;
 }
 
-.pad {
-  padding: 1.1rem 1.25rem;
-}
-
 .head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.6rem;
-}
-
-.head select {
-  padding: 0.3rem 0.45rem;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 3px;
-  font-size: 0.8rem;
+  flex-wrap: wrap;
+  gap: 0.7rem 1rem;
+  margin-bottom: 1rem;
 }
 
 svg {
+  display: block;
   width: 100%;
   height: auto;
 }
@@ -159,7 +149,8 @@ svg {
 
 .bucket {
   fill: var(--brown);
-  font-size: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
 }
 
 .gap {
@@ -179,23 +170,23 @@ svg {
 
 .reading {
   fill: var(--muted);
-  font-size: 11px;
+  font-size: 12.5px;
 }
 
 .axis {
-  stroke: var(--line);
+  stroke: var(--rule);
 }
 
 .tick {
   fill: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 figcaption {
   display: flex;
-  gap: 0.9rem;
-  margin-top: 0.4rem;
-  font-size: 0.72rem;
+  gap: 1.1rem;
+  margin-top: 0.6rem;
+  font-size: 0.8rem;
   color: var(--muted);
 }
 
@@ -218,9 +209,9 @@ figcaption {
 
 .empty,
 .readout {
-  margin: 0.6rem 0 0;
-  font-size: 0.78rem;
-  min-height: 1.2em;
+  margin: 0.7rem 0 0;
+  font-size: 0.85rem;
+  min-height: 1.3em;
 }
 
 .empty,

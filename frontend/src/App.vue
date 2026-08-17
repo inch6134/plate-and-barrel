@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { fetchPlayers } from './api'
+import { fetchPlayer, fetchPlayers } from './api'
 import { useResource } from './composables/useResource'
 import LeaderboardPanel from './components/LeaderboardPanel.vue'
-import PlayerPanel from './components/PlayerPanel.vue'
+import PlayerBar from './components/PlayerBar.vue'
+import StatSheet from './components/StatSheet.vue'
 import SwingProfileView from './components/SwingProfileView.vue'
 import SprayChartView from './components/SprayChartView.vue'
 import SplitsView from './components/SplitsView.vue'
@@ -24,51 +25,153 @@ watch(players, (roster) => {
     batterId.value = roster[0].batter_bam_id
   }
 })
+
+const { data: detail } = useResource(() => fetchPlayer(batterId.value))
 </script>
 
 <template>
-  <header>
-    <div class="brand">
-      <h1>Plate&amp;Barrel</h1>
-      <p class="eyebrow">San Diego Padres &middot; July 2024</p>
-    </div>
-    <label class="picker">
-      <span class="eyebrow">Batter</span>
-      <select v-model="batterId">
-        <option v-for="player in players" :key="player.batter_bam_id" :value="player.batter_bam_id">
-          {{ player.name_first }} {{ player.name_last }}
-        </option>
-      </select>
-    </label>
-  </header>
+  <div class="app">
+    <header class="masthead">
+      <div>
+        <h1>Plate<span class="amp">&amp;</span>Barrel</h1>
+        <p class="eyebrow">San Diego Padres batting &middot; July 2024</p>
+      </div>
+      <label class="picker">
+        <span class="eyebrow">Batter</span>
+        <select v-model="batterId" class="field">
+          <option v-for="player in players" :key="player.batter_bam_id" :value="player.batter_bam_id">
+            {{ player.name_last }}, {{ player.name_first }}
+          </option>
+        </select>
+      </label>
+    </header>
 
-  <p v-if="error" class="failure panel">
-    {{ error }} Start the API with <code>fastapi dev app/main.py</code> and reload.
-  </p>
+    <p v-if="error" class="panel failure">
+      {{ error }} Start the API with <code>fastapi run app.main</code> and reload.
+    </p>
 
-  <main v-else-if="batterId" class="layout">
-    <PlayerPanel :batter-id="batterId" />
+    <template v-else-if="detail">
+      <PlayerBar :player="detail.player" :stats="detail.stats" />
 
-    <section class="view">
-      <nav class="tabs">
-        <button v-for="tab in TABS" :key="tab.code" type="button" :class="{ active: tab.code === activeTab }"
-          :aria-pressed="tab.code === activeTab" @click="activeTab = tab.code">{{ tab.label }}</button>
-      </nav>
-      <InsightsPanel :batter-id="batterId" :view="activeTab" />
+      <main class="stage">
+        <nav class="tabs">
+          <button v-for="tab in TABS" :key="tab.code" type="button" :class="{ active: tab.code === activeTab }"
+            :aria-pressed="tab.code === activeTab" @click="activeTab = tab.code">{{ tab.label }}</button>
+        </nav>
 
-      <SwingProfileView v-if="activeTab === 'swing'" :batter-id="batterId" />
-      <SprayChartView v-else-if="activeTab === 'spray'" :batter-id="batterId" />
-      <SplitsView v-else :batter-id="batterId" />
-    </section>
+        <InsightsPanel :batter-id="batterId" :view="activeTab" />
 
-    <LeaderboardPanel :batter-id="batterId" @select="batterId = $event" />
-  </main>
+        <SwingProfileView v-if="activeTab === 'swing'" :batter-id="batterId" />
+        <SprayChartView v-else-if="activeTab === 'spray'" :batter-id="batterId" />
+        <SplitsView v-else :batter-id="batterId" />
+      </main>
+
+      <div class="shelf">
+        <StatSheet :stats="detail.stats" />
+        <LeaderboardPanel :batter-id="batterId" @select="batterId = $event" />
+      </div>
+    </template>
+  </div>
 </template>
 
 <style scoped>
-.view {
+.masthead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding: 2.25rem 0 1.1rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+h1 {
+  font-size: 1.6rem;
+  letter-spacing: -0.035em;
+}
+
+/* The ampersand is the one place the retail pun is allowed to show. */
+.amp {
+  padding: 0 0.06em;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.masthead .eyebrow {
+  margin: 0.3rem 0 0;
+}
+
+.picker {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.stage {
+  margin-top: 2.25rem;
   display: grid;
-  gap: 0.9rem;
+  gap: 1.1rem;
   align-content: start;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.2rem;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+}
+
+.tabs button {
+  flex: none;
+  margin-bottom: -1px;
+  padding: 0.65rem 1.05rem;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tabs button:hover {
+  color: var(--brown);
+}
+
+.tabs button.active {
+  color: var(--brown);
+  border-bottom-color: var(--gold);
+}
+
+.shelf {
+  margin-top: 2.75rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 1.1rem;
+  align-items: start;
+}
+
+.failure {
+  margin-top: 2rem;
+}
+
+@media (max-width: 960px) {
+  .shelf {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .masthead {
+    padding-top: 1.5rem;
+  }
+
+  .tabs button {
+    padding: 0.6rem 0.75rem;
+    letter-spacing: 0.06em;
+  }
 }
 </style>

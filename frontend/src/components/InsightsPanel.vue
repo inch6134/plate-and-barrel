@@ -44,7 +44,7 @@ const insights = computed(() =>
 
 <template>
   <section v-if="insights.length" class="panel insights">
-    <h3 class="eyebrow">What stands out</h3>
+    <h3 class="eyebrow section-head">What stands out</h3>
     <ul>
       <li v-for="insight in insights" :key="insight.key">
         <span class="gap numeric" :class="{ better: insight.better }">{{ insight.gap }}</span>
@@ -61,34 +61,31 @@ const insights = computed(() =>
 </template>
 
 <style scoped>
-.insights {
-  padding: 0.9rem 1.25rem;
-}
-
 ul {
-  margin: 0.5rem 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 0.4rem;
+  gap: 0.55rem;
 }
 
 li {
   display: flex;
   align-items: baseline;
-  gap: 0.7rem;
-  font-size: 0.82rem;
+  gap: 0.8rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
 }
 
 .gap {
   flex: none;
-  min-width: 4.6rem;
-  padding: 0.1rem 0.4rem;
-  border-radius: 3px;
+  min-width: 5rem;
+  padding: 0.12rem 0.45rem;
+  border-radius: var(--radius);
   background: var(--tint);
-  color: var(--muted);
-  font-size: 0.76rem;
-  font-weight: 600;
+  color: var(--ink-2);
+  font-size: 0.8rem;
+  font-weight: 700;
   text-align: right;
 }
 

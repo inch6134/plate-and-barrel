@@ -165,18 +165,18 @@ svg {
 
 svg :deep(.domain),
 svg :deep(.tick line) {
-  stroke: var(--line);
+  stroke: var(--rule);
 }
 
 svg :deep(.tick text) {
   fill: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
 }
 
 svg :deep(.axis-title),
 svg :deep(.threshold-label) {
   fill: var(--muted);
-  font-size: 11px;
+  font-size: 12.5px;
 }
 
 svg :deep(.threshold) {
@@ -226,8 +226,9 @@ svg :deep(.barrel) {
 figcaption {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.9rem;
-  font-size: 0.72rem;
+  gap: 1.1rem;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
   color: var(--muted);
 }
 
@@ -271,9 +272,9 @@ figcaption {
 }
 
 .readout {
-  margin: 0.6rem 0 0;
-  font-size: 0.78rem;
-  min-height: 1.2em;
+  margin: 0.7rem 0 0;
+  font-size: 0.85rem;
+  min-height: 1.3em;
 }
 
 .readout.muted {

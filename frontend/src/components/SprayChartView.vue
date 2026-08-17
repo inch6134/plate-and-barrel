@@ -40,14 +40,16 @@ const trajectoryOptions = computed(() => [
 </script>
 
 <template>
-  <div v-if="error" class="panel pad">{{ error }}</div>
+  <div v-if="error" class="panel">{{ error }}</div>
   <div v-else-if="data" class="spray">
     <FilterPills v-model="trajectory" :options="trajectoryOptions" />
     <FilterPills v-model="outcome" :options="OUTCOMES" />
 
-    <section class="panel pad">
-      <h3 class="eyebrow">{{ data.batted_balls.length }} batted balls</h3>
-      <SprayField :batted-balls="data.batted_balls" />
+    <section class="panel">
+      <h3 class="eyebrow section-head">{{ data.batted_balls.length }} batted balls</h3>
+      <div class="plot">
+        <SprayField :batted-balls="data.batted_balls" />
+      </div>
     </section>
   </div>
 </template>
@@ -56,13 +58,5 @@ const trajectoryOptions = computed(() => [
 .spray {
   display: grid;
   gap: 0.7rem;
-}
-
-.pad {
-  padding: 1.1rem 1.25rem;
-}
-
-section h3 {
-  margin-bottom: 0.7rem;
 }
 </style>

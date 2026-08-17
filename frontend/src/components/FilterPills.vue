@@ -21,23 +21,29 @@ defineEmits<{ 'update:modelValue': [code: string] }>()
 }
 
 button {
-  padding: 0.3rem 0.6rem;
+  padding: 0.38rem 0.8rem;
   background: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--rule);
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: 0.84rem;
+  color: var(--ink-2);
   cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--brown);
+  color: var(--brown);
 }
 
 button.on {
   background: var(--brown);
   border-color: var(--brown);
-  color: var(--paper);
+  color: var(--surface);
 }
 
 .count {
   margin-left: 0.3rem;
-  font-size: 0.7rem;
-  opacity: 0.6;
+  font-size: 0.76rem;
+  opacity: 0.65;
 }
 </style>

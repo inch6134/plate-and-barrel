@@ -1,16 +1,46 @@
+/*
+ * Plate & Barrel — a catalog spread for a batter.
+ *
+ * The name is the design brief. A furniture catalog sets a product against a lot
+ * of white, captions it with tiny letterspaced labels, prices it in large type
+ * over a rule, and lists the specifications in a tidy column underneath. This
+ * page does the same with a hitter: the headshot is the product shot, the slash
+ * line is the price, the stat groups are the specification table, and the three
+ * views are the product in use.
+ *
+ * Helvetica does all of it. Without a variable face the register has to change
+ * some other way, so it changes by case and tracking: labels are small, upper,
+ * and widely tracked; figures are tabular and tightened; the display sizes pull
+ * their letterspacing negative. One family, four voices.
+ *
+ * Brown is the ink and gold is the only chromatic note on the page. Gold is
+ * rationed to four jobs and appears nowhere else: the active tab, the rule above
+ * the slash line, the selected leaderboard row, and a better-than-baseline
+ * insight chip. Everything else is warm greys, so the gold always means
+ * "this one."
+ */
+
 :root {
   --brown: #2f241d;
+  --ink-2: #56483d;
+  --muted: #736759;
   --gold: #ffc425;
-  --paper: #fbfaf8;
+
+  --page: #efe9df;
   --surface: #ffffff;
-  --tint: #f4f0ea;
-  --line: #e2ddd5;
-  --muted: #6e6862;
+  --tint: #f6f2ea;
+  --line: #e0d8cb;
+  --rule: #cabfae;
+
+  --pad: 1.4rem;
+  --radius: 3px;
 
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-size: 15px;
+  font-size: 16px;
+  line-height: 1.5;
   color: var(--brown);
-  background: var(--paper);
+  background: var(--page);
+  -webkit-font-smoothing: antialiased;
 }
 
 * {
@@ -27,7 +57,7 @@ h2,
 h3 {
   margin: 0;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
 }
 
 button,
@@ -37,26 +67,81 @@ select {
 }
 
 :focus-visible {
-  outline: 2px solid var(--gold);
+  outline: 2px solid var(--brown);
   outline-offset: 2px;
 }
 
-.numeric {
-  font-variant-numeric: tabular-nums;
-}
+/* Shell -------------------------------------------------------------------- */
 
-.eyebrow {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--muted);
+.app {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 1.5rem 4rem;
 }
 
 .panel {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 3px;
+  border-radius: var(--radius);
+  padding: var(--pad);
+}
+
+/* Charts get their own ceiling so a wide window gives them air instead of
+   stretching them past the width at which they read. */
+.plot {
+  max-width: 840px;
+  margin: 0 auto;
+}
+
+/* Type --------------------------------------------------------------------- */
+
+.eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.numeric {
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.01em;
+}
+
+/* A heading followed by a hairline that eats the rest of the line. Used on
+   every panel so the page reads as one system. */
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.section-head::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+/* Controls ----------------------------------------------------------------- */
+
+.field {
+  appearance: none;
+  padding: 0.5rem 2rem 0.5rem 0.7rem;
+  background-color: var(--surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23736759' stroke-width='1.6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  background-size: 0.7rem;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.field:hover {
+  border-color: var(--brown);
 }
 
 @media (prefers-reduced-motion: reduce) {

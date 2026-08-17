@@ -31,3 +31,68 @@ const gap = (key: keyof StatLine) => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.bars {
+  display: grid;
+  gap: 1rem;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.35rem;
+}
+
+.label {
+  flex: 1;
+  font-size: 0.9rem;
+  color: var(--ink-2);
+}
+
+.value {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.gap {
+  min-width: 3.2rem;
+  padding: 0.08rem 0.4rem;
+  border-radius: var(--radius);
+  background: var(--tint);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+/* Brown, not gold. Gold is rationed to four jobs page-wide and five bars would
+   spend the whole budget in one panel. */
+.gap.better {
+  background: var(--brown);
+  color: var(--surface);
+}
+
+.track {
+  position: relative;
+  height: 9px;
+  background: var(--tint);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  background: var(--brown);
+  border-radius: 999px;
+}
+
+.baseline {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background: var(--muted);
+}
+</style>

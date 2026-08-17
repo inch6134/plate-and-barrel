@@ -7,9 +7,14 @@ import type { BattedBall } from '../types'
 
 const props = defineProps<{ battedBalls: BattedBall[] }>()
 
-const WIDTH = 720
-const HEIGHT = 500
 const HOME = { x: 360, y: 420 }
+
+/* The drawing is laid out around HOME in a 720x500 space, but the fair wedge and
+   the batted balls together only occupy the middle of it. Bearing runs past the
+   foul lines in this data (-118.7 to 162.1 degrees), so balls caught in foul
+   territory sit outside the wedge and two land behind home plate. The frame is
+   cropped to hold every point with room for its radius, not to the field. */
+const FRAME = { x: 118, y: 0, width: 512, height: 450 }
 const SCALE = 0.95
 const FOUL_LINE_FT = 330
 const CENTER_FIELD_FT = 400
@@ -112,7 +117,8 @@ onMounted(() => {
 
 <template>
   <figure>
-    <svg ref="canvas" :viewBox="`0 0 ${WIDTH} ${HEIGHT}`" role="img" aria-label="Batted ball locations" />
+    <svg ref="canvas" :viewBox="`${FRAME.x} ${FRAME.y} ${FRAME.width} ${FRAME.height}`" role="img"
+      aria-label="Batted ball locations" />
     <figcaption>
       <span class="key hit">Hit</span>
       <span class="key out">Out</span>
@@ -180,8 +186,9 @@ svg :deep(.ball.out) {
 figcaption {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.9rem;
-  font-size: 0.72rem;
+  gap: 1.1rem;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
   color: var(--muted);
 }
 
@@ -204,9 +211,9 @@ figcaption {
 }
 
 .readout {
-  margin: 0.6rem 0 0;
-  font-size: 0.78rem;
-  min-height: 1.2em;
+  margin: 0.7rem 0 0;
+  font-size: 0.85rem;
+  min-height: 1.3em;
 }
 
 .readout.muted {
