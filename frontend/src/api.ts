@@ -1,4 +1,4 @@
-import type { LeaderboardEntry, Player, PlayerDetail, StatLine, SwingProfile, SprayChart, Splits, Insight } from './types'
+import type { LeaderboardEntry, Player, PlayerDetail, SwingProfile, SprayChart, Splits, Insight } from './types'
 
 const request = async <T>(path: string, params: Record<string, string> = {}): Promise<T> => {
   const query = new URLSearchParams(params).toString()
@@ -10,8 +10,6 @@ const request = async <T>(path: string, params: Record<string, string> = {}): Pr
 export const fetchPlayers = () => request<Player[]>('/players')
 
 export const fetchPlayer = (batterId: number) => request<PlayerDetail>(`/players/${batterId}`)
-
-export const fetchTeam = () => request<StatLine>('/team')
 
 export const fetchLeaderboard = (metric: string, order: string) =>
   request<LeaderboardEntry[]>('/leaderboard', { metric, order })

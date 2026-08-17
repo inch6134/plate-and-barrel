@@ -58,7 +58,7 @@ export const CONTACT_QUALITY: MetricGroup = {
     { key: 'hard_hit_rate', label: 'Hard-Hit%', format: 'rate', higherIsBetter: true, unit: 'pts' },
     { key: 'sweet_spot_rate', label: 'Sweet Spot%', format: 'rate', higherIsBetter: true, unit: 'pts' },
     { key: 'barrel_rate', label: 'Barrel%', format: 'rate', higherIsBetter: true, unit: 'pts' },
-    { key: 'avg_bat_speed', label: 'Bat Speed', format: 'decimal', higherIsBetter: true, unit: 'pts' },
+    { key: 'avg_bat_speed', label: 'Bat Speed', format: 'decimal', higherIsBetter: true, unit: 'mph' },
     { key: 'avg_attack_angle', label: 'Attack Angle', format: 'decimal', higherIsBetter: true, unit: '°' },
     { key: 'pull_rate', label: 'Pull%', format: 'rate', unit: 'pts', higherIsBetter: true },
     { key: 'center_rate', label: 'Center%', format: 'rate', unit: 'pts', higherIsBetter: true },

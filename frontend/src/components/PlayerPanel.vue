@@ -25,12 +25,11 @@ const SIDES: Record<string, string> = { L: 'Bats left', R: 'Bats right', S: 'Swi
       <h2 class="name">{{ data.player.name_first }} {{ data.player.name_last }}</h2>
       <p class="bio">
         {{ SIDES[data.player.side] }} &middot; {{ data.player.height }},
-        {{ data.player.weight }} lbs &middot; Age {{ data.player.age }},
+        {{ data.player.weight }} lbs &middot; Age {{ data.player.age }}
       </p>
 
       <p class="slash numeric">{{ slash }}</p>
       <p class="eyebrow">AVG / OBP / SLG / OPS</p>
-
 
       <section v-for="group in METRIC_GROUPS" :key="group.label" class="group">
         <h3 class="eyebrow">{{ group.label }}</h3>

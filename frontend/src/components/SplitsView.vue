@@ -4,6 +4,7 @@ import { fetchSplits } from '../api'
 import { useResource } from '../composables/useResource'
 import { SPLIT_METRICS, formatValue } from '../metrics'
 import { BUCKET_LABELS, DIMENSIONS } from '../splits'
+import FilterPills from './FilterPills.vue'
 import type { MetricSpec } from '../metrics'
 import type { Split } from '../types'
 
@@ -50,12 +51,7 @@ const plotted = computed(() => rows.value.filter((split) => valueOf(split, 'play
 <template>
   <div v-if="error" class="panel pad">{{ error }}</div>
   <div v-else-if="data" class="splits">
-    <nav class="filters">
-      <button v-for="option in DIMENSIONS" :key="option.code" type="button" :class="{ on: dimension === option.code }"
-        @click="dimension = option.code">
-        {{ option.label }}
-      </button>
-    </nav>
+    <FilterPills v-model="dimension" :options="DIMENSIONS" />
 
     <section class="panel pad">
       <header class="head">
@@ -125,27 +121,6 @@ const plotted = computed(() => rows.value.filter((split) => valueOf(split, 'play
 
 .pad {
   padding: 1.1rem 1.25rem;
-}
-
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.filters button {
-  padding: 0.3rem 0.6rem;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  font-size: 0.78rem;
-  cursor: pointer;
-}
-
-.filters button.on {
-  background: var(--brown);
-  border-color: var(--brown);
-  color: var(--paper);
 }
 
 .head {

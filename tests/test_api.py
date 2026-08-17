@@ -74,3 +74,64 @@ def test_thin_samples_are_gated_within_each_bucket():
         "/api/players/666703/splits", params={"dimension": "count"}
     ).json()
     assert all(s["player"]["chase_rate"] is None for s in splits["splits"])
+
+
+def test_spray_chart_returns_every_batted_ball_with_its_trajectory_options():
+    spray = client.get("/api/players/592518/spray-chart").json()
+    assert len(spray["batted_balls"]) == 69
+    assert sum(option["count"] for option in spray["trajectories"]) == 69
+
+
+def test_spray_outcome_filter_keeps_only_hits():
+    spray = client.get(
+        "/api/players/592518/spray-chart", params={"outcome": "hit"}
+    ).json()
+    assert len(spray["batted_balls"]) == 23
+    assert all(ball["is_hit"] for ball in spray["batted_balls"])
+
+
+def test_spray_trajectory_options_stay_unfiltered_so_pill_counts_hold_still():
+    spray = client.get(
+        "/api/players/592518/spray-chart", params={"trajectory": "line_drive"}
+    ).json()
+    assert len(spray["batted_balls"]) == 22
+    assert sum(option["count"] for option in spray["trajectories"]) == 69
+
+
+def test_spray_chart_rejects_an_unknown_trajectory():
+    response = client.get(
+        "/api/players/592518/spray-chart", params={"trajectory": "nope"}
+    )
+    assert response.status_code == 422
+
+
+def test_insights_rank_one_callout_per_metric():
+    insights = client.get(
+        "/api/insights", params={"batter_id": 592518, "view": "swing"}
+    ).json()
+    assert len(insights) == 3
+    assert len({i["metric"] for i in insights}) == 3
+    assert all(i["dimension"] is None and i["scope"] == "overall" for i in insights)
+
+
+def test_insight_values_match_the_players_own_stat_line():
+    insights = client.get(
+        "/api/insights", params={"batter_id": 592518, "view": "spray"}
+    ).json()
+    stats = client.get("/api/players/592518").json()["stats"]
+    assert all(i["value"] == stats[i["metric"]] for i in insights)
+
+
+def test_split_insights_name_the_bucket_they_came_from():
+    insights = client.get(
+        "/api/insights", params={"batter_id": 592518, "view": "splits"}
+    ).json()
+    assert all(i["dimension"] is not None for i in insights)
+    assert all(i["scope"] != "overall" for i in insights)
+
+
+def test_gated_player_produces_no_insights():
+    insights = client.get(
+        "/api/insights", params={"batter_id": 666703, "view": "swing"}
+    ).json()
+    assert insights == []

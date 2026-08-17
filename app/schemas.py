@@ -40,6 +40,9 @@ class StatLine(BaseModel):
     hard_hits: int
     sweet_spots: int
     barrels: int
+    pulled: int
+    up_the_middle: int
+    opposite: int
     pa: int
     ab: int
     hits: int
@@ -66,6 +69,9 @@ class StatLine(BaseModel):
     hard_hit_rate: float | None
     sweet_spot_rate: float | None
     barrel_rate: float | None
+    pull_rate: float | None
+    center_rate: float | None
+    oppo_rate: float | None
     avg_bat_speed: float | None
     avg_attack_angle: float | None
     avg: float | None
@@ -190,4 +196,3 @@ class Insight(BaseModel):
     baseline: float
     sample: int
     sample_column: str
-    score: float

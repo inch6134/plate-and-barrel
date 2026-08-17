@@ -11,12 +11,9 @@ TEAM = "San Diego Padres"
 
 COLUMNS = [
     "game_date",
-    "game_bam_id",
     "inning",
-    "at_bat_number",
     "pre_balls",
     "pre_strikes",
-    "pre_outs",
     "pre_basecode",
     "batter_team",
     "batter_bam_id",
@@ -41,10 +38,7 @@ COLUMNS = [
     "ball",
     "bunt_attempt",
     "bat_speed",
-    "vertical_bat_angle",
-    "horizontal_bat_angle",
     "vertical_bat_attack_angle",
-    "horizontal_bat_attack_angle",
     "hit_trajectory",
     "hit_exit_speed",
     "hit_vertical_angle",
