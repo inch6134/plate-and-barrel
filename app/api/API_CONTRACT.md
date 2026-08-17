@@ -43,14 +43,41 @@ Count metrics are ungated and return all 15.
 | ------------ | -------- | ------------------------------------------ |
 | `pitch_type` | no       | `4S` `2S` `CT` `SL` `SW` `CB` `CH` `SP`    |
 
-`{ player, team, swings, pitch_types }`. `player` and `team` are `StatLine`s over the
-same pitch-type scope, so the view can draw a baseline without a second request.
+`{ player, team, spread, zone, pitches, contexts, pitch_types }`.
 
-`swings` is one row per non-bunt swing that has a tracked `bat_speed` (1,603 of the
-team's 1,610 non-bunt swings), carrying `bat_speed`, `attack_angle`, `pitch_type`,
-`in_zone`, `result` (`in_play` / `foul` / `whiff`), and the batted-ball fields
-(`exit_velo`, `launch_angle`, `distance`, `hard_hit`, `barrel`) which are null or
-false unless the swing produced a tracked ball in play.
+`player` and `team` are `StatLine`s over the same pitch-type scope. `spread` is
+the cross-player standard deviation of each rate, the same figure the insight
+ranking divides by, so a view can show how much a metric varies across the roster
+rather than only the team average.
+
+`pitches` is one row per pitch, takes included, carrying `plate_x`, `plate_z`,
+`in_zone`, `pitch_type`, `batter_side`, `result` (`take` / `whiff` / `foul` /
+`in_play`), and `bat_speed` and `exit_velo` where they exist.
+
+**`plate_x` is negated on the way out.** In the raw file the right-handed batter's
+box sits on the positive side, which is the mirror of the Statcast convention.
+Two independent checks fix the sign: the five hit-by-pitches sit at +2.2 to +2.6
+for righties and -1.2 to -1.3 for lefties, and pulled balls come off the batter's
+own side of the plate. Negating once turns the payload into a conventional
+catcher's view, so a client can plot it directly.
+
+`zone` carries the batter's own `top` and `bottom` plus the `half_width` of 0.83
+feet, half the plate plus a ball radius. Those three reproduce the `in_zone`
+column exactly on all 3,278 pitches, and 0.83 is the only half width that does,
+so a drawn zone box and the chase and zone-swing rates can never disagree. `boxes`
+lists the sides this batter actually hit from with a pitch count each, so a switch
+hitter reports both.
+
+`contexts` is bat tracking cut three ways, each a list of `Split`s in the same
+shape the splits endpoint returns:
+
+| Context    | Buckets                                  |
+| ---------- | ---------------------------------------- |
+| `location` | zone / outside                           |
+| `count`    | under_two / two_strikes                  |
+| `family`   | fastball / breaking / offspeed           |
+
+Sample floors apply per bucket, so a thin bucket reports a null rate.
 
 `pitch_types` is the filter menu: every pitch type this batter saw and how many
 pitches of it, counted over all pitches rather than the filtered scope, so the

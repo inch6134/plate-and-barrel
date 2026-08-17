@@ -76,6 +76,51 @@ def test_thin_samples_are_gated_within_each_bucket():
     assert all(s["player"]["chase_rate"] is None for s in splits["splits"])
 
 
+def test_swing_profile_returns_every_pitch_not_just_swings():
+    profile = client.get("/api/players/592518/swing-profile").json()
+    assert len(profile["pitches"]) == 360
+    assert {p["result"] for p in profile["pitches"]} == {
+        "take",
+        "foul",
+        "in_play",
+        "whiff",
+    }
+
+
+def test_zone_plot_x_is_negated_into_catchers_view():
+    profile = client.get("/api/players/592518/swing-profile").json()
+    hit_by_pitches = [p for p in profile["pitches"] if p["plate_x"] < -1.5]
+    assert hit_by_pitches
+    assert all(p["batter_side"] == "R" for p in hit_by_pitches)
+
+
+def test_zone_box_matches_the_in_zone_column():
+    profile = client.get("/api/players/592518/swing-profile").json()
+    zone, half = profile["zone"], profile["zone"]["half_width"]
+    inside = [
+        abs(p["plate_x"]) <= half and zone["bottom"] <= p["plate_z"] <= zone["top"]
+        for p in profile["pitches"]
+    ]
+    assert inside == [p["in_zone"] for p in profile["pitches"]]
+
+
+def test_switch_hitter_gets_a_box_for_each_side():
+    boxes = client.get("/api/players/595777/swing-profile").json()["zone"]["boxes"]
+    assert {b["side"]: b["pitches"] for b in boxes} == {"L": 305, "R": 104}
+
+
+def test_bat_speed_drops_outside_the_zone_and_with_two_strikes():
+    contexts = client.get("/api/players/592518/swing-profile").json()["contexts"]
+    speeds = {
+        bucket["bucket"]: bucket["team"]["avg_bat_speed"]
+        for context in contexts
+        for bucket in context["buckets"]
+    }
+    assert round(speeds["zone"], 1) == 67.9
+    assert round(speeds["outside"], 1) == 63.8
+    assert speeds["two_strikes"] < speeds["under_two"]
+
+
 def test_outs_split_buckets_by_the_pre_pitch_out_count():
     splits = client.get(
         "/api/players/592518/splits", params={"dimension": "outs"}

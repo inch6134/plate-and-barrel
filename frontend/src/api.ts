@@ -14,11 +14,11 @@ export const fetchPlayer = (batterId: number) => request<PlayerDetail>(`/players
 export const fetchLeaderboard = (metric: string, order: string) =>
   request<LeaderboardEntry[]>('/leaderboard', { metric, order })
 
-export const fetchSwingProfile = (batterId: number, pitchType: string) =>
-  request<SwingProfile>(
-    `/players/${batterId}/swing-profile`,
-    pitchType ? { pitch_type: pitchType } : {},
-  )
+export const fetchSwingProfile = (batterId: number, pitchType: string, family: string) =>
+  request<SwingProfile>(`/players/${batterId}/swing-profile`, {
+    ...(pitchType ? { pitch_type: pitchType } : {}),
+    ...(family ? { family } : {}),
+  })
 
 export const fetchSprayChart = (batterId: number, trajectory: string, outcome: string) =>
   request<SprayChart>(`/players/${batterId}/spray-chart`, {

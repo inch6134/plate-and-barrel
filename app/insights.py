@@ -34,7 +34,7 @@ def _spread_of(frame: pl.DataFrame) -> dict[str, float | None]:
 
 
 @lru_cache(maxsize=1)
-def _overall_spread() -> dict[str, float | None]:
+def overall_spread() -> dict[str, float | None]:
     return _spread_of(apply_floors(summarize(batting(), ["batter_bam_id"])))
 
 
@@ -79,7 +79,7 @@ def _overall(rows: pl.DataFrame, metrics: list[str]) -> list[dict]:
         "overall",
         apply_floors(summarize(rows, [])).row(0, named=True),
         summarize(batting(), []).row(0, named=True),
-        _overall_spread(),
+        overall_spread(),
     )
 
 

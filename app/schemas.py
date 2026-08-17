@@ -106,18 +106,21 @@ class PitchType(StrEnum):
     SPLITTER = "SP"
 
 
-class Swing(BaseModel):
-    bat_speed: float
-    attack_angle: float | None
-    pitch_type: str
+class PitchFamily(StrEnum):
+    FASTBALL = "fastball"
+    BREAKING = "breaking"
+    OFFSPEED = "offspeed"
+
+
+class Pitch(BaseModel):
+    plate_x: float
+    plate_z: float
     in_zone: bool
+    pitch_type: str
+    batter_side: str
     result: str
-    event_type: str | None
+    bat_speed: float | None
     exit_velo: float | None
-    launch_angle: float | None
-    distance: float | None
-    hard_hit: bool
-    barrel: bool
 
 
 class FilterOption(BaseModel):
@@ -125,10 +128,36 @@ class FilterOption(BaseModel):
     count: int
 
 
+class BatterBox(BaseModel):
+    side: str
+    pitches: int
+
+
+class Zone(BaseModel):
+    top: float
+    bottom: float
+    half_width: float
+    boxes: list[BatterBox]
+
+
+class Split(BaseModel):
+    bucket: str
+    player: StatLine
+    team: StatLine
+
+
+class ContextSplit(BaseModel):
+    context: str
+    buckets: list[Split]
+
+
 class SwingProfile(BaseModel):
     player: StatLine
     team: StatLine
-    swings: list[Swing]
+    spread: dict[str, float | None]
+    zone: Zone
+    pitches: list[Pitch]
+    contexts: list[ContextSplit]
     pitch_types: list[FilterOption]
 
 
@@ -173,12 +202,6 @@ class Dimension(StrEnum):
     INNING = "inning"
     HAND = "hand"
     ROLE = "role"
-
-
-class Split(BaseModel):
-    bucket: str
-    player: StatLine
-    team: StatLine
 
 
 class Splits(BaseModel):

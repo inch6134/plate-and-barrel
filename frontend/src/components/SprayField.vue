@@ -14,7 +14,7 @@ const HOME = { x: 360, y: 420 }
    foul lines in this data (-118.7 to 162.1 degrees), so balls caught in foul
    territory sit outside the wedge and two land behind home plate. The frame is
    cropped to hold every point with room for its radius, not to the field. */
-const FRAME = { x: 118, y: 0, width: 512, height: 450 }
+const FRAME = { x: 100, y: 0, width: 550, height: 458 }
 const SCALE = 0.95
 const FOUL_LINE_FT = 330
 const CENTER_FIELD_FT = 400
@@ -60,6 +60,14 @@ const diamond = [
 const size = scaleSqrt().domain([40, 120]).range([3.5, 8]).clamp(true)
 const path = line()
 
+/* Wall distance at the two poles, the two gaps and dead centre, so a reader can
+   judge how deep a ball travelled without counting pixels. */
+const markers = [-45, -22.5, 0, 22.5, 45].map((bearing) => {
+  const radius = wallRadius(bearing)
+  const [px, py] = project(bearing, radius + 20)
+  return { bearing, feet: Math.round(radius), x: px, y: py }
+})
+
 /* Colour is how well it was struck, shape is what it produced. Keeping them on
    separate channels matters because they disagree often: hard-hit balls go for
    hits 48.7% of the time against 23.7% for everything else. */
@@ -95,6 +103,17 @@ const draw = (element: SVGSVGElement) => {
     .attr('y', ([, py]) => py - 3)
     .attr('width', 6)
     .attr('height', 6)
+
+  root
+    .append('g')
+    .selectAll('text')
+    .data(markers)
+    .join('text')
+    .attr('class', 'marker')
+    .attr('x', (marker) => marker.x)
+    .attr('y', (marker) => marker.y)
+    .attr('text-anchor', 'middle')
+    .text((marker) => `${marker.feet} ft`)
 
   root
     .append('circle')
@@ -142,7 +161,6 @@ onMounted(() => {
     <svg ref="canvas" :viewBox="`${FRAME.x} ${FRAME.y} ${FRAME.width} ${FRAME.height}`" role="img"
       aria-label="Batted ball locations" />
     <figcaption>
-      <span class="shape hit">Hit</span>
       <span class="shape out">Out</span>
       <span class="swatch barrel">Barrel</span>
       <span class="swatch hard">Hard-hit</span>
@@ -200,6 +218,12 @@ svg :deep(.diamond) {
 
 svg :deep(.foul-line) {
   stroke: var(--line);
+}
+
+svg :deep(.marker) {
+  fill: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
 }
 
 svg :deep(.base),

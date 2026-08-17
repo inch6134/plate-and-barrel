@@ -181,25 +181,25 @@ RATES = [
 
 OPS = (pl.col("obp") + pl.col("slg")).alias("ops")
 
-SWING_DETAIL = [
-    pl.col("bat_speed"),
-    pl.col("vertical_bat_attack_angle").alias("attack_angle"),
-    pl.col("pitch_type"),
+PITCH_DETAIL = [
+    (-pl.col("plate_x")).alias("plate_x"),
+    pl.col("plate_z"),
     pl.col("in_zone"),
-    pl.when(pl.col("in_play"))
+    pl.col("pitch_type"),
+    pl.col("batter_side"),
+    pl.when(~pl.col("swing"))
+    .then(pl.lit("take"))
+    .when(pl.col("in_play"))
     .then(pl.lit("in_play"))
     .when(pl.col("foul"))
     .then(pl.lit("foul"))
     .otherwise(pl.lit("whiff"))
     .alias("result"),
-    pl.col("event_type"),
+    pl.when(pl.col("swing") & ~pl.col("bunt_attempt"))
+    .then(pl.col("bat_speed"))
+    .otherwise(None)
+    .alias("bat_speed"),
     _on_batted_ball(pl.col("hit_exit_speed")).alias("exit_velo"),
-    _on_batted_ball(pl.col("hit_vertical_angle")).alias("launch_angle"),
-    _on_batted_ball(pl.col("hit_distance")).alias("distance"),
-    (pl.col("batted_ball") & (pl.col("hit_exit_speed") >= HARD_HIT_MPH)).alias(
-        "hard_hit"
-    ),
-    (pl.col("batted_ball") & is_barrel).alias("barrel"),
 ]
 
 SPRAY_DETAIL = [

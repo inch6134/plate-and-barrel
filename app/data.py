@@ -50,6 +50,17 @@ COLUMNS = [
     "terminating",
 ]
 
+ZONE_HALF_WIDTH_FT = 0.83
+
+FASTBALLS = ["4S", "2S", "CT"]
+BREAKING = ["SL", "SW", "CB"]
+
+CONTEXTS = {
+    "location": ("zone_state", ["zone", "outside"]),
+    "count": ("strike_state", ["under_two", "two_strikes"]),
+    "family": ("pitch_family", ["fastball", "breaking", "offspeed"]),
+}
+
 DIMENSIONS = {
     "count": ("count_state", ["ahead", "even", "behind"]),
     "outs": ("out_state", ["0", "1", "2"]),
@@ -110,6 +121,21 @@ def batting() -> pl.DataFrame:
             .then(pl.lit("scoring"))
             .otherwise(pl.lit("on_base")),
             out_state=pl.col("pre_outs").cast(pl.Utf8),
+            zone_state=pl.when(pl.col("in_zone"))
+            .then(pl.lit("zone"))
+            .when(pl.col("in_zone").is_not_null())
+            .then(pl.lit("outside"))
+            .otherwise(None),
+            strike_state=pl.when(pl.col("pre_strikes") == 2)
+            .then(pl.lit("two_strikes"))
+            .otherwise(pl.lit("under_two")),
+            pitch_family=pl.when(pl.col("pitch_type").is_in(FASTBALLS))
+            .then(pl.lit("fastball"))
+            .when(pl.col("pitch_type").is_in(BREAKING))
+            .then(pl.lit("breaking"))
+            .when(pl.col("pitch_type").is_not_null())
+            .then(pl.lit("offspeed"))
+            .otherwise(None),
             pitcher_role=pl.when(pl.col("pitcher_type") == "S")
             .then(pl.lit("starter"))
             .otherwise(pl.lit("reliever")),

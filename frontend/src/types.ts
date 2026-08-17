@@ -80,18 +80,29 @@ export interface LeaderboardEntry {
   sample: number
 }
 
-export interface Swing {
-  bat_speed: number
-  attack_angle: number | null
-  pitch_type: string
+export type PitchResult = 'take' | 'whiff' | 'foul' | 'in_play'
+
+export interface Pitch {
+  plate_x: number
+  plate_z: number
   in_zone: boolean
-  result: 'in_play' | 'foul' | 'whiff'
-  event_type: string | null
+  pitch_type: string
+  batter_side: string
+  result: PitchResult
+  bat_speed: number | null
   exit_velo: number | null
-  launch_angle: number | null
-  distance: number | null
-  hard_hit: boolean
-  barrel: boolean
+}
+
+export interface BatterBox {
+  side: string
+  pitches: number
+}
+
+export interface Zone {
+  top: number
+  bottom: number
+  half_width: number
+  boxes: BatterBox[]
 }
 
 export interface FilterOption {
@@ -99,10 +110,18 @@ export interface FilterOption {
   count: number
 }
 
+export interface ContextSplit {
+  context: string
+  buckets: Split[]
+}
+
 export interface SwingProfile {
   player: StatLine
   team: StatLine
-  swings: Swing[]
+  spread: Record<string, number | null>
+  zone: Zone
+  pitches: Pitch[]
+  contexts: ContextSplit[]
   pitch_types: FilterOption[]
 }
 

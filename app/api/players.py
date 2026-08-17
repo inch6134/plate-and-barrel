@@ -1,18 +1,21 @@
 import polars as pl
 from fastapi import APIRouter
 
-from app.data import DIMENSIONS, batting, roster
+from app.data import CONTEXTS, DIMENSIONS, ZONE_HALF_WIDTH_FT, batting, roster
 from app.api.deps import player_rows
+from app.insights import overall_spread
 from app.metrics import (
     HIT_EVENTS,
+    PITCH_DETAIL,
     SPRAY_DETAIL,
-    SWING_DETAIL,
     summarize,
     bucketed,
 )
 from app.schemas import (
+    ContextSplit,
     Dimension,
     Outcome,
+    PitchFamily,
     PitchType,
     Player,
     PlayerDetail,
@@ -22,17 +25,21 @@ from app.schemas import (
     StatLine,
     SwingProfile,
     Trajectory,
+    Zone,
 )
 
 router = APIRouter(prefix="/api", tags=["players"])
 
 
-def _of_type(frame: pl.DataFrame, pitch_type: PitchType | None) -> pl.DataFrame:
-    return (
-        frame
-        if pitch_type is None
-        else frame.filter(pl.col("pitch_type") == pitch_type)
-    )
+def _of_type(
+    frame: pl.DataFrame, pitch_type: PitchType | None, family: PitchFamily | None
+) -> pl.DataFrame:
+    matches = []
+    if pitch_type is not None:
+        matches.append(pl.col("pitch_type") == pitch_type)
+    if family is not None:
+        matches.append(pl.col("pitch_family") == family)
+    return frame.filter(*matches)
 
 
 def _spray_filters(
@@ -62,15 +69,47 @@ def get_player(batter_id: int) -> PlayerDetail:
     )
 
 
+def _zone_of(rows: pl.DataFrame) -> Zone:
+    thrown = rows.filter(pl.col("is_pitch"))
+    boxes = (
+        thrown.group_by(side="batter_side")
+        .agg(pitches=pl.len())
+        .sort("pitches", descending=True)
+    )
+    return Zone(
+        top=thrown["strikezone_top"].max(),
+        bottom=thrown["strikezone_bot"].min(),
+        half_width=ZONE_HALF_WIDTH_FT,
+        boxes=boxes.to_dicts(),
+    )
+
+
+def _contexts_of(rows: pl.DataFrame) -> list[ContextSplit]:
+    thrown = rows.filter(pl.col("is_pitch"))
+    league = batting().filter(pl.col("is_pitch"))
+    contexts = []
+    for context, (column, buckets) in CONTEXTS.items():
+        baseline = {row[column]: row for row in bucketed(league, column, buckets)}
+        contexts.append(
+            ContextSplit(
+                context=context,
+                buckets=[
+                    Split(bucket=row[column], player=row, team=baseline[row[column]])
+                    for row in bucketed(thrown, column, buckets)
+                ],
+            )
+        )
+    return contexts
+
+
 @router.get("/players/{batter_id}/swing-profile")
 def get_swing_profile(
-    batter_id: int, pitch_type: PitchType | None = None
+    batter_id: int,
+    pitch_type: PitchType | None = None,
+    family: PitchFamily | None = None,
 ) -> SwingProfile:
     rows = player_rows(batter_id)
-    scoped = _of_type(rows, pitch_type)
-    swings = scoped.filter(
-        pl.col("swing") & ~pl.col("bunt_attempt") & pl.col("bat_speed").is_not_null()
-    )
+    scoped = _of_type(rows, pitch_type, family)
     options = (
         rows.filter(pl.col("is_pitch"))
         .group_by(code="pitch_type")
@@ -79,8 +118,11 @@ def get_swing_profile(
     )
     return SwingProfile(
         player=summarize(scoped, []).row(0, named=True),
-        team=summarize(_of_type(batting(), pitch_type), []).row(0, named=True),
-        swings=swings.select(SWING_DETAIL).to_dicts(),
+        team=summarize(_of_type(batting(), pitch_type, family), []).row(0, named=True),
+        spread=overall_spread(),
+        zone=_zone_of(rows),
+        pitches=scoped.filter(pl.col("is_pitch")).select(PITCH_DETAIL).to_dicts(),
+        contexts=_contexts_of(scoped),
         pitch_types=options.to_dicts(),
     )
 

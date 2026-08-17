@@ -2,9 +2,24 @@
 import { SWING_DECISIONS, formatGap, formatValue, valueUnit } from '../metrics'
 import type { StatLine } from '../types'
 
-const props = defineProps<{ player: StatLine; team: StatLine }>()
+const props = defineProps<{
+  player: StatLine
+  team: StatLine
+  spread: Record<string, number | null>
+}>()
 
 const percent = (value: number | null) => (value === null ? 0 : value * 100)
+
+/* One cross-player standard deviation either side of the team rate, so a gap can
+   be read against how much the metric actually varies across the roster. */
+const band = (key: keyof StatLine) => {
+  const team = props.team[key]
+  const deviation = props.spread[key]
+  if (typeof team !== 'number' || !deviation) return null
+  const low = Math.max(0, (team - deviation) * 100)
+  const high = Math.min(100, (team + deviation) * 100)
+  return { left: `${low}%`, width: `${high - low}%` }
+}
 
 const gap = (key: keyof StatLine) => {
   const player = props.player[key]
@@ -28,6 +43,7 @@ const gap = (key: keyof StatLine) => {
       </div>
       <div class="track">
         <div class="fill" :style="{ width: `${percent(player[metric.key])}%` }" />
+        <div v-if="band(metric.key)" class="spread" :style="band(metric.key)!" />
         <div class="baseline" :style="{ left: `${percent(team[metric.key])}%` }">
           <span class="tick-label numeric">{{ formatValue(team[metric.key], metric.format) }}</span>
         </div>
@@ -38,6 +54,7 @@ const gap = (key: keyof StatLine) => {
   <p class="key">
     <span class="swatch fill" />This batter
     <span class="swatch tick" />Team baseline
+    <span class="swatch spread" />Spread across the roster
     <span class="note">A gold chip means better than the team.</span>
   </p>
 </template>
@@ -86,6 +103,7 @@ const gap = (key: keyof StatLine) => {
 .track {
   position: relative;
   height: 14px;
+  margin-top: 12px;
   background: var(--tint);
   border: 1px solid var(--line);
   border-radius: 2px;
@@ -97,11 +115,27 @@ const gap = (key: keyof StatLine) => {
   border-radius: 1px;
 }
 
+/* One standard deviation of roster spread either side of the team rate. It rides
+   just above the bar rather than inside it, so the player's fill never hides
+   half the range. Scoped to the track: unscoped it also caught the legend
+   swatch and tore it out of the flow. */
+.track .spread {
+  position: absolute;
+  top: -8px;
+  height: 4px;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--rule) 0 1.5px,
+    var(--tint) 1.5px 4px
+  );
+  border-radius: 2px;
+}
+
 /* The team rate is the thing every bar is read against, so it is a full-height
    post with its own number rather than a tick lost inside the fill. */
 .baseline {
   position: absolute;
-  top: -4px;
+  top: -9px;
   bottom: -4px;
   width: 2px;
   background: var(--brown);
@@ -143,6 +177,17 @@ const gap = (key: keyof StatLine) => {
   height: 14px;
   margin-left: 0.6rem;
   background: var(--brown);
+}
+
+.swatch.spread {
+  height: 5px;
+  margin-left: 0.6rem;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--rule) 0 1.5px,
+    var(--tint) 1.5px 4px
+  );
+  border-radius: 2px;
 }
 
 .note {
