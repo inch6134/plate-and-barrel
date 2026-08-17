@@ -1,4 +1,3 @@
-!frontend/dist/
 frontend/src/
 frontend/public/
 frontend/node_modules/
@@ -9,3 +8,9 @@ frontend/tsconfig*.json
 frontend/vite.config.ts
 tests/
 scripts/
+
+# The build output is gitignored but is exactly what the service serves, so it is
+# re-included here. The negation comes last: in gitignore semantics a rule only
+# overrides patterns above it.
+!frontend/dist/
+!frontend/dist/**

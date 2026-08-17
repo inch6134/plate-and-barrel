@@ -26,7 +26,7 @@ watch(players, (roster) => {
   }
 })
 
-const { data: detail } = useResource(() => fetchPlayer(batterId.value))
+const { data: detail, pending: loadingPlayer } = useResource(() => fetchPlayer(batterId.value))
 </script>
 
 <template>
@@ -47,11 +47,11 @@ const { data: detail } = useResource(() => fetchPlayer(batterId.value))
     </header>
 
     <p v-if="error" class="panel failure">
-      {{ error }} Start the API with <code>fastapi run app.main</code> and reload.
+      {{ error }} Start the API with <code>uv run fastapi run app/main.py</code> and reload.
     </p>
 
     <template v-else-if="detail">
-      <PlayerBar :player="detail.player" :stats="detail.stats" />
+      <PlayerBar :player="detail.player" :stats="detail.stats" :class="{ refreshing: loadingPlayer }" />
 
       <main class="stage">
         <nav class="tabs">
@@ -67,10 +67,12 @@ const { data: detail } = useResource(() => fetchPlayer(batterId.value))
       </main>
 
       <div class="shelf">
-        <StatSheet :stats="detail.stats" />
+        <StatSheet :stats="detail.stats" :class="{ refreshing: loadingPlayer }" />
         <LeaderboardPanel :batter-id="batterId" @select="batterId = $event" />
       </div>
     </template>
+
+    <div v-else class="panel awaiting" />
   </div>
 </template>
 

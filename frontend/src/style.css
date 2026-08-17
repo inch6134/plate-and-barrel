@@ -130,6 +130,21 @@ select {
   background: var(--line);
 }
 
+/* Loading ------------------------------------------------------------------
+   A panel that is refreshing dims instead of emptying, so switching batters never
+   collapses the layout under the pointer. A panel with nothing to show yet holds
+   its space instead. */
+
+.refreshing {
+  opacity: 0.45;
+  pointer-events: none;
+  transition: opacity 120ms ease-out;
+}
+
+.awaiting {
+  min-height: 18rem;
+}
+
 /* Detail readout ------------------------------------------------------------
    Every view ends in the same gesture: pick a mark, read its numbers. Giving it
    one treatment everywhere makes it a component of the page rather than a

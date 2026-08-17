@@ -1,6 +1,7 @@
+import pytest
 from fastapi.testclient import TestClient
 
-from app.main import app
+from app.main import DIST, app
 
 client = TestClient(app)
 
@@ -204,3 +205,15 @@ def test_gated_player_produces_no_insights():
         "/api/insights", params={"batter_id": 666703, "view": "swing"}
     ).json()
     assert insights == []
+
+
+def test_api_routes_win_over_the_static_mount():
+    assert client.get("/api/health").json() == {"status": "ok"}
+    assert len(client.get("/api/players").json()) == 15
+
+
+@pytest.mark.skipif(not DIST.is_dir(), reason="frontend has not been built")
+def test_built_frontend_is_served_from_the_same_service():
+    response = client.get("/")
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/html")

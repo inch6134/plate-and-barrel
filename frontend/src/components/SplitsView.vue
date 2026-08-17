@@ -21,7 +21,7 @@ const selected = ref<Split>()
 
 watch([() => props.batterId, dimension], () => (selected.value = undefined))
 
-const { data, error } = useResource(() => fetchSplits(props.batterId, dimension.value))
+const { data, error, pending } = useResource(() => fetchSplits(props.batterId, dimension.value))
 
 const valueOf = (split: Split, side: 'player' | 'team') => {
   const value = split[side][metric.value.key]
@@ -50,7 +50,8 @@ const plotted = computed(() => rows.value.filter((split) => valueOf(split, 'play
 
 <template>
   <div v-if="error" class="panel">{{ error }}</div>
-  <div v-else-if="data" class="splits">
+  <div v-else-if="!data" class="panel awaiting" />
+  <div v-else-if="data" class="splits" :class="{ refreshing: pending }">
     <FilterPills v-model="dimension" :options="DIMENSIONS" />
 
     <section class="panel">

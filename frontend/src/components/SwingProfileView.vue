@@ -21,7 +21,7 @@ watch(
   () => (chosen.value = ''),
 )
 
-const { data, error } = useResource(() =>
+const { data, error, pending } = useResource(() =>
   fetchSwingProfile(
     props.batterId,
     isFamily(chosen.value) ? '' : chosen.value,
@@ -62,7 +62,8 @@ const legend = computed(() =>
 
 <template>
   <div v-if="error" class="panel">{{ error }}</div>
-  <div v-else-if="data" class="profile">
+  <div v-else-if="!data" class="panel awaiting" />
+  <div v-else-if="data" class="profile" :class="{ refreshing: pending }">
     <FilterPills v-model="chosen" :options="pitchOptions" />
 
     <section class="panel">

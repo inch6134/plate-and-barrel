@@ -26,7 +26,7 @@ watch(
   },
 )
 
-const { data, error } = useResource(() =>
+const { data, error, pending } = useResource(() =>
   fetchSprayChart(props.batterId, trajectory.value, outcome.value),
 )
 
@@ -42,7 +42,8 @@ const trajectoryOptions = computed(() => [
 
 <template>
   <div v-if="error" class="panel">{{ error }}</div>
-  <div v-else-if="data" class="spray">
+  <div v-else-if="!data" class="panel awaiting" />
+  <div v-else-if="data" class="spray" :class="{ refreshing: pending }">
     <FilterPills v-model="trajectory" :options="trajectoryOptions" />
     <FilterPills v-model="outcome" :options="OUTCOMES" />
 

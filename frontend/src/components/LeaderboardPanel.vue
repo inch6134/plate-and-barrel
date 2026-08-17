@@ -17,7 +17,7 @@ const emit = defineEmits<{ select: [batterId: number] }>()
 const metric = ref<MetricSpec>(OPS)
 const order = computed(() => (metric.value.higherIsBetter ? 'desc' : 'asc'))
 
-const { data, error } = useResource(() => fetchLeaderboard(metric.value.key, order.value))
+const { data, error, pending } = useResource(() => fetchLeaderboard(metric.value.key, order.value))
 </script>
 
 <template>
@@ -33,24 +33,25 @@ const { data, error } = useResource(() => fetchLeaderboard(metric.value.key, ord
     </select>
 
     <p v-if="error" class="notice">{{ error }}</p>
-    <template v-else-if="data">
+    <!-- The ranking dims while it reloads, but the metric picker above stays live. -->
+    <div v-else-if="data" class="ranking" :class="{ refreshing: pending }">
       <p class="colhead eyebrow">
         <span class="who">Batter</span>
         <span>{{ SAMPLE_LABELS[sampleOf(metric)] }}</span>
         <span class="value">{{ metric.label }}</span>
       </p>
       <ol>
-      <li v-for="(entry, index) in data" :key="entry.batter_bam_id">
-        <button type="button" :class="{ current: entry.batter_bam_id === batterId }"
-          @click="emit('select', entry.batter_bam_id)">
-          <span class="rank numeric">{{ index + 1 }}</span>
-          <span class="who">{{ entry.name_first[0] }}. {{ entry.name_last }}</span>
-          <span class="sample numeric">{{ entry.sample }}</span>
-          <span class="value numeric">{{ formatValue(entry.value, metric.format) }}</span>
-        </button>
-      </li>
+        <li v-for="(entry, index) in data" :key="entry.batter_bam_id">
+          <button type="button" :class="{ current: entry.batter_bam_id === batterId }"
+            @click="emit('select', entry.batter_bam_id)">
+            <span class="rank numeric">{{ index + 1 }}</span>
+            <span class="who">{{ entry.name_first[0] }}. {{ entry.name_last }}</span>
+            <span class="sample numeric">{{ entry.sample }}</span>
+            <span class="value numeric">{{ formatValue(entry.value, metric.format) }}</span>
+          </button>
+        </li>
       </ol>
-    </template>
+    </div>
     <p v-if="data && data.length < 15" class="footnote">
       {{ 15 - data.length }} batters fall below the sample floor for {{ metric.label }} and are not ranked.
     </p>
