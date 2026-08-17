@@ -26,7 +26,11 @@ watch(players, (roster) => {
   }
 })
 
-const { data: detail, pending: loadingPlayer } = useResource(() => fetchPlayer(batterId.value))
+/* No batter is selected until the roster lands, and id 0 is nobody, so the first
+   run has nothing to ask for. Without this the page opens with a 404. */
+const { data: detail, pending: loadingPlayer } = useResource(async () =>
+  batterId.value ? fetchPlayer(batterId.value) : undefined,
+)
 </script>
 
 <template>
